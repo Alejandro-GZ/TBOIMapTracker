@@ -44,6 +44,7 @@ describe('vanilla room shape rules', () => {
     'angel',
     'error',
     'blue',
+    'red',
     'secret-exit',
   ] as const)('keeps %s at 1x1', (type) => {
     expect(getAllowedRoomShapes(type)).toEqual(['1x1']);
