@@ -3,6 +3,7 @@ import {
   canPlaceRoom,
   getDragRoomPlacement,
   getRoomCells,
+  getRoomConnections,
   getShapeBounds,
   getShapeVisualCenter,
   gridIndex,
@@ -64,6 +65,23 @@ describe('Isaac level geometry', () => {
   it('rejects pointer selections larger than Isaac room footprints', () => {
     expect(getDragRoomPlacement({ x: 3, y: 3 }, { x: 5, y: 3 })).toBeNull();
     expect(getDragRoomPlacement({ x: 3, y: 3 }, { x: 4, y: 5 })).toBeNull();
+  });
+
+  it('creates door boundaries only between distinct adjacent rooms', () => {
+    const rooms = [
+      room({ id: 'left', anchor: { x: 4, y: 4 }, shape: '1x1' }),
+      room({ id: 'right', anchor: { x: 5, y: 4 }, shape: '1x1' }),
+      room({ id: 'large', anchor: { x: 7, y: 4 }, shape: '2x1' }),
+    ];
+
+    expect(getRoomConnections(rooms)).toEqual([
+      { point: { x: 4, y: 4 }, direction: 'right', roomA: 'left', roomB: 'right' },
+    ]);
+  });
+
+  it('does not create a door inside one multi-cell room', () => {
+    const rooms = [room({ id: 'large', anchor: { x: 4, y: 4 }, shape: '2x1' })];
+    expect(getRoomConnections(rooms)).toHaveLength(0);
   });
 
   it('rejects a 2x2 room that crosses the 13x13 boundary', () => {
