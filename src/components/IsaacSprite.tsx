@@ -9,6 +9,7 @@ import {
 } from '../domain/minimapIcons';
 import {
   getMinimapIconFrame,
+  MINIMAP_ICON_ATLAS_FRAMES,
   MINIMAP_ICON_ATLAS_SIZE,
 } from '../domain/minimapIconFrames';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
@@ -70,13 +71,15 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
 }
 
 const isMinimapIconId = (value: string): value is MinimapIconId =>
-  value.startsWith('P_') || value.startsWith('R_') || value.startsWith('S_');
+  Object.prototype.hasOwnProperty.call(MINIMAP_ICON_ATLAS_FRAMES, value);
 
 function getIntegerScale(frame: { w: number; h: number }, requestedScale: number, fitSize?: number) {
-  if (fitSize !== undefined) {
-    return Math.max(1, Math.floor(fitSize / Math.max(frame.w, frame.h)));
-  }
-  return Math.max(1, Math.round(requestedScale));
+  // Existing callers expressed size as multiples of the old 12×12 atlas cell.
+  // Treat that value as a target box instead of multiplying the source pixels
+  // blindly. Small 4–6 px icons therefore get a larger integer scale than 8–9
+  // px icons while every sprite still preserves its original aspect ratio.
+  const targetSize = fitSize ?? Math.max(1, Math.round(requestedScale)) * 12;
+  return Math.max(1, Math.floor(targetSize / Math.max(frame.w, frame.h)));
 }
 
 /**
@@ -108,9 +111,11 @@ export function MinimapIconSprite({
 
   const frameStyle: CSSProperties = {
     position: 'relative',
+    display: 'block',
     width,
     height,
     overflow: 'hidden',
+    lineHeight: 0,
     imageRendering: 'pixelated',
   };
 
