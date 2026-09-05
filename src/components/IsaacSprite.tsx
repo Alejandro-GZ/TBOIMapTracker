@@ -1,15 +1,27 @@
 import type { CSSProperties } from 'react';
+import {
+  DEFAULT_PICKUP_ICON_BY_KIND,
+  getMinimapIconIndex,
+  MINIMAP_ICON_ATLAS_COLUMNS,
+  MINIMAP_ICON_ATLAS_HEIGHT,
+  MINIMAP_ICON_ATLAS_URL,
+  MINIMAP_ICON_ATLAS_WIDTH,
+  MINIMAP_ICON_CELL,
+  MINIMAP_ICON_ORDER,
+  ROOM_ICON_BY_TYPE,
+  ROOM_ICON_VARIANT_CLASS,
+  TRACKABLE_MARKER_BY_ID,
+  type MinimapIconId,
+} from '../domain/minimapIcons';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 
 /**
- * Room shapes and room-type icons come from the same preview assets used by
- * IsaacDocs. Pinning the docs revision keeps the map deterministic while still
- * avoiding redistribution of most PNGs in this repository. ROOM_DEFAULT is
- * vendored locally because that preview is not present in the pinned raw docs tree.
+ * Room silhouettes keep using the canonical RoomShape preview images from the
+ * pinned IsaacDocs revision. Everything that sits on top of a room (room type,
+ * pickups and structures) comes from the locally vendored MiniMAPI icon atlas.
  */
 export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
 const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
-const ROOM_DEFAULT_ICON = new URL('../assets/room-default.png', import.meta.url).href;
 
 const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   '1x1': 1,
@@ -26,49 +38,8 @@ const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   LBR: 12,
 };
 
-/** Values follow RoomType in IsaacDocs. Some tracker-only room types deliberately
- * reuse a canonical Isaac icon and recolor it in CSS. */
-const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
-  shop: 2,
-  'black-market': 2,
-  treasure: 4,
-  boss: 5,
-  miniboss: 6,
-  secret: 7,
-  'super-secret': 8,
-  arcade: 9,
-  curse: 10,
-  challenge: 11,
-  library: 12,
-  sacrifice: 13,
-  devil: 14,
-  angel: 15,
-  'boss-challenge': 17,
-  bedroom: 18,
-  dice: 21,
-  planetarium: 24,
-  'ultra-secret': 29,
-};
-
-const ROOM_TYPE_VARIANT_CLASS: Partial<Record<RoomTypeId, string>> = {
-  blue: 'isaac-room-type-blue',
-  red: 'isaac-room-type-red',
-  'black-market': 'isaac-room-type-black-market',
-};
-
-const ROOM_TYPE_TEXT: Partial<Record<RoomTypeId, string>> = {
-  start: 'S',
-  error: 'ERR',
-};
-
 export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
   `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
-
-export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
-  if (type === 'normal' || type === 'blue' || type === 'red') return ROOM_DEFAULT_ICON;
-  const value = ROOM_TYPE_VALUES[type];
-  return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
-};
 
 interface CanonicalImageProps {
   src: string;
@@ -100,10 +71,50 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
   );
 }
 
+const isMinimapIconId = (value: string): value is MinimapIconId =>
+  MINIMAP_ICON_ORDER.includes(value as MinimapIconId);
+
+export function MinimapIconSprite({
+  id,
+  scale = 2,
+  className = '',
+  dataAttribute = {},
+}: {
+  id: MinimapIconId;
+  scale?: number;
+  className?: string;
+  dataAttribute?: Record<string, string>;
+}) {
+  const integerScale = Math.max(1, Math.round(scale));
+  const index = getMinimapIconIndex(id);
+  const x = (index % MINIMAP_ICON_ATLAS_COLUMNS) * MINIMAP_ICON_CELL;
+  const y = Math.floor(index / MINIMAP_ICON_ATLAS_COLUMNS) * MINIMAP_ICON_CELL;
+
+  const style: CSSProperties = {
+    width: MINIMAP_ICON_CELL * integerScale,
+    height: MINIMAP_ICON_CELL * integerScale,
+    backgroundImage: `url("${MINIMAP_ICON_ATLAS_URL}")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: `${MINIMAP_ICON_ATLAS_WIDTH * integerScale}px ${MINIMAP_ICON_ATLAS_HEIGHT * integerScale}px`,
+    backgroundPosition: `${-x * integerScale}px ${-y * integerScale}px`,
+    imageRendering: 'pixelated',
+  };
+
+  return (
+    <span
+      className={`minimap-icon-sprite ${className}`.trim()}
+      style={style}
+      data-icon-id={id}
+      aria-hidden="true"
+      {...dataAttribute}
+    />
+  );
+}
+
 export function RoomTypeSprite({
   type,
   fallback,
-  scale = 1,
+  scale = 2,
   className,
 }: {
   type: RoomTypeId;
@@ -111,35 +122,14 @@ export function RoomTypeSprite({
   scale?: number;
   className?: string;
 }) {
-  const text = ROOM_TYPE_TEXT[type];
-  if (text) {
+  const iconId = ROOM_ICON_BY_TYPE[type];
+  if (iconId) {
     return (
-      <span
-        className={`isaac-room-type-frame ${className ?? ''}`.trim()}
-        style={{ '--isaac-icon-scale': scale } as CSSProperties}
-      >
-        <span
-          className={`isaac-room-type-text isaac-room-type-${type}`}
-          data-isaac-room-type={type}
-          aria-hidden="true"
-        >
-          {text}
-        </span>
-      </span>
-    );
-  }
-
-  const src = getCanonicalRoomTypeUrl(type);
-  if (src) {
-    const variantClass = ROOM_TYPE_VARIANT_CLASS[type] ?? '';
-    return (
-      <span
-        className={`isaac-room-type-frame ${className ?? ''}`.trim()}
-        style={{ '--isaac-icon-scale': scale } as CSSProperties}
-      >
-        <CanonicalImage
-          src={src}
-          className={`isaac-room-type-image ${variantClass}`.trim()}
+      <span className={`isaac-room-type-frame ${className ?? ''}`.trim()}>
+        <MinimapIconSprite
+          id={iconId}
+          scale={scale}
+          className={`isaac-room-type-image ${ROOM_ICON_VARIANT_CLASS[type] ?? ''}`.trim()}
           dataAttribute={{ 'data-isaac-room-type': type }}
         />
       </span>
@@ -147,65 +137,39 @@ export function RoomTypeSprite({
   }
 
   if (!fallback) return null;
-  return (
-    <span className={`isaac-sprite-fallback ${className ?? ''}`.trim()} aria-hidden="true">
-      {fallback}
-    </span>
-  );
+  return <span className={`isaac-sprite-fallback ${className ?? ''}`.trim()} aria-hidden="true">{fallback}</span>;
 }
-
-/* Pickups are not covered by the RoomShape/RoomType docs tables. Keep them on
- * a separate secondary skin so canonical room rendering is never coupled to
- * MiniMAPI. */
-const MINIMAP_API_REVISION = 'ca7ecb5a256887963129fa6314e8babb6a3d3cb6';
-const MINIMAP_API_RAW = `https://raw.githubusercontent.com/TazTxUK/MinimapAPI/${MINIMAP_API_REVISION}/resources/gfx/ui/minimapapi`;
-const MINIMAP_PICKUP_SHEET = `${MINIMAP_API_RAW}/minimapapi_icons.png`;
-const ICON_SHEET_WIDTH = 128;
-const ICON_SHEET_HEIGHT = 160;
-const ICON_FRAME_SIZE = 16;
-
-type IconFrame = Readonly<{ x: number; y: number }>;
-
-const PICKUP_FRAMES: Partial<Record<PickupKind, IconFrame>> = {
-  heart: { x: 64, y: 48 },
-  coin: { x: 80, y: 48 },
-  key: { x: 96, y: 48 },
-  bomb: { x: 112, y: 48 },
-  collectible: { x: 0, y: 64 },
-  trinket: { x: 16, y: 64 },
-  battery: { x: 32, y: 64 },
-  card: { x: 48, y: 64 },
-  pill: { x: 64, y: 64 },
-  rune: { x: 80, y: 64 },
-  chest: { x: 80, y: 80 },
-};
 
 export function PickupSprite({
   kind,
+  iconId,
   fallback,
-  scale = 1,
+  scale = 2,
   className = '',
+  map = false,
 }: {
   kind: PickupKind;
+  iconId?: string;
   fallback?: string;
   scale?: number;
   className?: string;
+  map?: boolean;
 }) {
-  const frame = PICKUP_FRAMES[kind];
-  if (!frame) {
+  const exact = iconId && isMinimapIconId(iconId) ? iconId : undefined;
+  const mapVariant = exact && map ? TRACKABLE_MARKER_BY_ID[exact]?.mapIcon : undefined;
+  const resolved = mapVariant ?? exact ?? DEFAULT_PICKUP_ICON_BY_KIND[kind];
+
+  if (!resolved) {
     if (!fallback) return null;
     return <span className={`isaac-sprite-fallback ${className}`.trim()} aria-hidden="true">{fallback}</span>;
   }
 
-  const style: CSSProperties = {
-    width: ICON_FRAME_SIZE * scale,
-    height: ICON_FRAME_SIZE * scale,
-    backgroundImage: `url("${MINIMAP_PICKUP_SHEET}")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: `${ICON_SHEET_WIDTH * scale}px ${ICON_SHEET_HEIGHT * scale}px`,
-    backgroundPosition: `${-frame.x * scale}px ${-frame.y * scale}px`,
-    imageRendering: 'pixelated',
-  };
-
-  return <span className={`isaac-sprite pickup-sprite ${className}`.trim()} style={style} aria-hidden="true" />;
+  return (
+    <MinimapIconSprite
+      id={resolved}
+      scale={scale}
+      className={`pickup-sprite ${className}`.trim()}
+      dataAttribute={{ 'data-minimap-marker': resolved }}
+    />
+  );
 }
