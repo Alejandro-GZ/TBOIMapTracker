@@ -73,23 +73,22 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
 const isMinimapIconId = (value: string): value is MinimapIconId =>
   Object.prototype.hasOwnProperty.call(MINIMAP_ICON_FRAMES, value);
 
-function getIntegerScale(frame: { w: number; h: number }, requestedScale: number, fitSize?: number) {
-  // Existing callers expressed size as multiples of the old 12×12 atlas cell.
-  // Treat that value as a target box instead of multiplying the source pixels
-  // blindly. Small 4–6 px icons therefore get a larger integer scale than 8–9
-  // px icons while every sprite still preserves its original aspect ratio.
-  const targetSize = fitSize ?? Math.max(1, Math.round(requestedScale)) * 12;
+function getTargetSize(requestedScale: number, fitSize?: number) {
+  return Math.max(1, Math.round(fitSize ?? Math.max(1, requestedScale) * 12));
+}
+
+function getIntegerScale(frame: { w: number; h: number }, targetSize: number) {
   return Math.max(1, Math.floor(targetSize / Math.max(frame.w, frame.h)));
 }
 
 /**
  * Pixel-perfect atlas renderer.
  *
- * The previous implementation rendered and scaled the whole 12×12 atlas cell.
- * The extracted sprites are only 4–9 px wide/high, so transparent padding made
- * small icons appear inconsistently tiny. We now clip to each sprite's exact
- * x/y/w/h bounds, then apply one integer scale to both axes. No distortion and
- * no interpolation are introduced by the icon renderer itself.
+ * The old renderer scaled a whole 12×12 cell even though extracted sprites are
+ * only 4–9 px wide/high. The transparent padding made small icons look missing
+ * and made icon sizes inconsistent. We now keep a stable target box for layout,
+ * clip the atlas to the sprite's exact x/y/w/h frame, and scale that frame by a
+ * single integer factor on both axes. The source aspect ratio is never changed.
  */
 export function MinimapIconSprite({
   id,
@@ -105,18 +104,29 @@ export function MinimapIconSprite({
   dataAttribute?: Record<string, string>;
 }) {
   const frame = getMinimapIconFrame(id);
-  const integerScale = getIntegerScale(frame, scale, fitSize);
-  const width = frame.w * integerScale;
-  const height = frame.h * integerScale;
+  const targetSize = getTargetSize(scale, fitSize);
+  const integerScale = getIntegerScale(frame, targetSize);
+  const renderedWidth = frame.w * integerScale;
+  const renderedHeight = frame.h * integerScale;
 
-  const frameStyle: CSSProperties = {
+  const boxStyle: CSSProperties = {
     position: 'relative',
-    display: 'block',
-    width,
-    height,
+    display: 'grid',
+    placeItems: 'center',
+    width: targetSize,
+    height: targetSize,
     overflow: 'hidden',
     lineHeight: 0,
     imageRendering: 'pixelated',
+  };
+
+  const cropStyle: CSSProperties = {
+    position: 'relative',
+    display: 'block',
+    width: renderedWidth,
+    height: renderedHeight,
+    overflow: 'hidden',
+    flex: '0 0 auto',
   };
 
   const atlasStyle: CSSProperties = {
@@ -134,22 +144,26 @@ export function MinimapIconSprite({
   return (
     <span
       className={`minimap-icon-sprite ${className}`.trim()}
-      style={frameStyle}
+      style={boxStyle}
       data-icon-id={id}
       data-source-width={frame.w}
       data-source-height={frame.h}
       data-pixel-scale={integerScale}
+      data-render-width={renderedWidth}
+      data-render-height={renderedHeight}
       aria-hidden="true"
       {...dataAttribute}
     >
-      <img
-        src={MINIMAP_ICON_ATLAS_URL}
-        alt=""
-        draggable={false}
-        className="minimap-icon-atlas-image"
-        style={atlasStyle}
-        aria-hidden="true"
-      />
+      <span className="minimap-icon-crop" style={cropStyle}>
+        <img
+          src={MINIMAP_ICON_ATLAS_URL}
+          alt=""
+          draggable={false}
+          className="minimap-icon-atlas-image"
+          style={atlasStyle}
+          aria-hidden="true"
+        />
+      </span>
     </span>
   );
 }
