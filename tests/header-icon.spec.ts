@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('./');
 });
 
-test('uses the Blue Map icon as unboxed tracker branding and favicon', async ({ page }) => {
+test('uses the Blue Map icon as prominent unboxed tracker branding and favicon', async ({ page }) => {
   const brandMark = page.locator('.brand-mark');
   const brandIcon = brandMark.locator('img');
   const title = page.locator('.brand strong');
@@ -21,18 +21,23 @@ test('uses the Blue Map icon as unboxed tracker branding and favicon', async ({ 
 
   const markStyle = await brandMark.evaluate((element) => {
     const computed = getComputedStyle(element);
+    const box = element.getBoundingClientRect();
     return {
       borderTopWidth: computed.borderTopWidth,
       boxShadow: computed.boxShadow,
       backgroundColor: computed.backgroundColor,
+      width: box.width,
+      height: box.height,
     };
   });
   expect(markStyle.borderTopWidth).toBe('0px');
   expect(markStyle.boxShadow).toBe('none');
   expect(markStyle.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(markStyle.width).toBeGreaterThanOrEqual(50);
+  expect(markStyle.height).toBeGreaterThanOrEqual(50);
 
   const titleSize = await title.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
-  expect(titleSize).toBeGreaterThanOrEqual(19);
+  expect(titleSize).toBeGreaterThanOrEqual(26);
 });
 
 test('re-supplied structure sprites render from their exact individual PNGs', async ({ page }) => {
