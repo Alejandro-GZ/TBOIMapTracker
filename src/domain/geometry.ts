@@ -85,6 +85,49 @@ export const isInsideGrid = ({ x, y }: GridPoint) =>
 
 export const gridIndex = ({ x, y }: GridPoint) => y * GRID_SIZE + x;
 
+export interface DragRoomPlacement {
+  anchor: GridPoint;
+  shape: Extract<RoomShapeId, '1x1' | '1x2' | '2x1' | '2x2'>;
+  width: number;
+  height: number;
+}
+
+/**
+ * Rooms created directly on the map use Isaac's rectangular room footprints.
+ * A click creates 1×1; dragging one cell horizontally/vertically creates 2×1
+ * or 1×2; dragging a 2×2 rectangle creates 2×2. Corridor and L variants stay
+ * available in the inspector because their topology cannot be inferred from a
+ * rectangular pointer gesture without adding an ambiguous interaction mode.
+ */
+export const getDragRoomPlacement = (
+  start: GridPoint,
+  end: GridPoint,
+): DragRoomPlacement | null => {
+  const minX = Math.min(start.x, end.x);
+  const minY = Math.min(start.y, end.y);
+  const width = Math.abs(end.x - start.x) + 1;
+  const height = Math.abs(end.y - start.y) + 1;
+
+  if (width > 2 || height > 2) return null;
+
+  const shape = (
+    width === 1 && height === 1
+      ? '1x1'
+      : width === 1
+        ? '1x2'
+        : height === 1
+          ? '2x1'
+          : '2x2'
+  ) as DragRoomPlacement['shape'];
+
+  return {
+    anchor: { x: minX, y: minY },
+    shape,
+    width,
+    height,
+  };
+};
+
 export const buildOccupancy = (rooms: Room[]) => {
   const result = new Map<string, Room>();
   for (const room of rooms) {
