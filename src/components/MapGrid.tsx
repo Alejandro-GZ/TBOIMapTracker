@@ -34,7 +34,6 @@ export function MapGrid() {
 
   const rooms = document.dimensions[activeDimension];
   const occupancy = useMemo(() => buildOccupancy(rooms), [rooms]);
-  const axis = useMemo(() => Array.from({ length: GRID_SIZE }, (_, index) => index), []);
 
   const dragPreview = useMemo(() => {
     if (!dragSelection) return null;
@@ -177,7 +176,10 @@ export function MapGrid() {
             setNotice(`${meta?.label ?? 'Room'} selected at (${point.x}, ${point.y}).`);
           }}
           aria-label={room ? `${meta?.label ?? 'Room'} at ${x}, ${y}` : `Empty cell ${x}, ${y}`}
-        />,
+        >
+          {y === 0 && <span className="matrix-coordinate matrix-coordinate-x" aria-hidden="true">{x}</span>}
+          {x === 0 && <span className="matrix-coordinate matrix-coordinate-y" aria-hidden="true">{y}</span>}
+        </button>,
       );
     }
   }
@@ -206,13 +208,6 @@ export function MapGrid() {
       <div className="map-viewport" ref={viewportRef} data-testid="map-viewport">
         <div className="map-zoom-surface" style={zoomStyle}>
           <div className="map-matrix">
-            <div className="axis-corner" aria-hidden="true">·</div>
-            <div className="map-axis map-axis-top" aria-label="Map x coordinates">
-              {axis.map((value) => <span key={value}>{value}</span>)}
-            </div>
-            <div className="map-axis map-axis-left" aria-label="Map y coordinates">
-              {axis.map((value) => <span key={value}>{value}</span>)}
-            </div>
             <div className={`map-grid-stack ${showIndices ? 'show-guides' : ''}`}>
               <div
                 className="map-render-layer"
