@@ -135,9 +135,7 @@ export function RoomInspector() {
           className="inspector-delete-button"
           aria-label="Delete room"
           title="Delete room"
-          onClick={() => {
-            if (window.confirm('Delete this room and its recorded contents?')) deleteRoom(room.id);
-          }}
+          onClick={() => deleteRoom(room.id)}
         >
           <TrashIcon />
         </button>
