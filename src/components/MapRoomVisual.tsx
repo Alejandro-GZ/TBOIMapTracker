@@ -62,7 +62,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
         <span className={`map-room-content-row ${hasRoomIcon ? 'has-room-icon' : 'pickup-only'}`}>
           {hasRoomIcon && (
             <span className="map-room-type-icon">
-              <RoomTypeSprite type={room.type} fitSize={hasPickups ? 28 : 36} />
+              <RoomTypeSprite type={room.type} fitSize={hasPickups ? 24 : 36} />
             </span>
           )}
           {hasPickups && <RoomPickupLayer pickups={room.pickups} />}
