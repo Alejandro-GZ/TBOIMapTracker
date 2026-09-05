@@ -9,7 +9,7 @@ import {
 } from '../domain/minimapIcons';
 import {
   getMinimapIconFrame,
-  MINIMAP_ICON_ATLAS_FRAMES,
+  MINIMAP_ICON_FRAMES,
   MINIMAP_ICON_ATLAS_SIZE,
 } from '../domain/minimapIconFrames';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
@@ -71,7 +71,7 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
 }
 
 const isMinimapIconId = (value: string): value is MinimapIconId =>
-  Object.prototype.hasOwnProperty.call(MINIMAP_ICON_ATLAS_FRAMES, value);
+  Object.prototype.hasOwnProperty.call(MINIMAP_ICON_FRAMES, value);
 
 function getIntegerScale(frame: { w: number; h: number }, requestedScale: number, fitSize?: number) {
   // Existing callers expressed size as multiples of the old 12×12 atlas cell.
