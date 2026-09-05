@@ -11,51 +11,27 @@
   grid-row: auto;
 }
 
-.map-axis {
+.matrix-coordinate {
   position: absolute;
-  z-index: 12;
-  color: #aaa095;
+  z-index: 20;
+  color: #b1a79a;
+  font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
   font-size: 9px;
+  font-weight: 400;
   line-height: 1;
   text-shadow: 1px 1px 0 #000, 0 0 3px #000;
-  opacity: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
-.axis-corner {
-  position: absolute;
-  z-index: 12;
-  left: 0;
-  top: 0;
-  width: 20px;
-  height: 16px;
-  color: #756b60;
-  font-size: 8px;
+.matrix-coordinate-x {
+  left: 50%;
+  top: -15px;
+  transform: translateX(-50%);
 }
 
-.map-axis-top {
-  left: 22px;
-  right: 0;
-  top: 0;
-  height: 16px;
-  display: grid;
-  grid-template-columns: repeat(13, minmax(0, 1fr));
-  gap: 2px;
-  padding: 0;
-}
-
-.map-axis-left {
-  left: 0;
-  top: 18px;
-  bottom: 0;
-  width: 20px;
-  height: auto;
-  display: grid;
-  grid-template-rows: repeat(13, minmax(0, 1fr));
-  gap: 2px;
-  padding: 0;
-}
-
-.map-axis span {
-  display: grid;
-  place-items: center;
+.matrix-coordinate-y {
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
 }
