@@ -138,29 +138,65 @@ test('builds a representative floor through the real UI and captures it', async 
   });
 });
 
-test('uses the requested main-only chrome, icon variants and grid layering', async ({ page }) => {
+test('uses iconless normal/colour rooms and fills the left paper menu', async ({ page }) => {
+  const paletteNormalIcon = page.getByTestId('room-tool-normal').locator('img[data-isaac-room-type="normal"]');
+  await expect(paletteNormalIcon).toBeVisible();
+
+  await page.getByTestId('room-tool-normal').click();
+  await page.getByTestId('map-cell-1-1').click();
+  const normalRoom = page.locator('.map-room-visual[data-room-type="normal"]');
+  await expect(normalRoom).toHaveCount(1);
+  await expect(normalRoom.locator('[data-isaac-room-type="normal"]')).toHaveCount(0);
+
+  await page.getByTestId('room-tool-blue').click();
+  await page.getByTestId('map-cell-4-1').click();
+  const blueRoom = page.locator('.map-room-visual[data-room-type="blue"]');
+  await expect(blueRoom).toHaveCount(1);
+  await expect(blueRoom.locator('[data-isaac-room-type="blue"]')).toHaveCount(0);
+  const blueFilter = await blueRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
+  expect(blueFilter).not.toBe('none');
+
+  await page.getByTestId('room-tool-red').click();
+  await page.getByTestId('map-cell-6-1').click();
+  const redRoom = page.locator('.map-room-visual[data-room-type="red"]');
+  await expect(redRoom).toHaveCount(1);
+  await expect(redRoom.locator('[data-isaac-room-type="red"]')).toHaveCount(0);
+  const redFilter = await redRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
+  expect(redFilter).not.toBe('none');
+  expect(redFilter).not.toBe(blueFilter);
+
+  await expect(page.getByTestId('room-tool-red')).toBeVisible();
+  const paletteLayout = await page.locator('.palette-panel').evaluate((panel) => {
+    const rect = panel.getBoundingClientRect();
+    const groups = Array.from(panel.querySelectorAll('.palette-group')).map((group) => group.getBoundingClientRect());
+    const lastTool = panel.querySelector('.palette-group-hidden .room-tool:last-child')?.getBoundingClientRect();
+    return {
+      display: getComputedStyle(panel).display,
+      clientHeight: panel.clientHeight,
+      scrollHeight: panel.scrollHeight,
+      panelTop: rect.top,
+      panelBottom: rect.bottom,
+      groupTop: groups[0]?.top ?? 0,
+      groupBottom: groups.at(-1)?.bottom ?? 0,
+      lastToolBottom: lastTool?.bottom ?? 0,
+    };
+  });
+  expect(paletteLayout.display).toBe('grid');
+  expect(paletteLayout.scrollHeight).toBeLessThanOrEqual(paletteLayout.clientHeight + 1);
+  expect(paletteLayout.groupTop).toBeGreaterThanOrEqual(paletteLayout.panelTop);
+  expect(paletteLayout.groupBottom).toBeLessThanOrEqual(paletteLayout.panelBottom + 1);
+  expect(paletteLayout.lastToolBottom).toBeLessThanOrEqual(paletteLayout.panelBottom + 1);
+});
+
+test('uses the requested main-only chrome, special icons and grid layering', async ({ page }) => {
   await expect(page.locator('.dimension-bar')).toHaveCount(0);
 
   const startIcon = page.locator('.map-room-visual[data-room-type="start"] [data-isaac-room-type="start"]');
   await expect(startIcon).toHaveText('S');
 
-  await page.getByTestId('room-tool-normal').click();
-  await page.getByTestId('map-cell-1-1').click();
-  await waitForArt(page);
-  const normalIcon = page.locator('.map-room-visual[data-room-type="normal"] img[data-isaac-room-type="normal"]').first();
-  await expect(normalIcon).toBeVisible();
-  expect(await normalIcon.getAttribute('src')).toContain('room-default');
-
   await page.getByTestId('room-tool-error').click();
   await page.getByTestId('map-cell-3-1').click();
   await expect(page.locator('.map-room-visual[data-room-type="error"] [data-isaac-room-type="error"]')).toHaveText('ERR');
-
-  await page.getByTestId('room-tool-blue').click();
-  await page.getByTestId('map-cell-5-1').click();
-  await waitForArt(page);
-  const blueIcon = page.locator('.map-room-visual[data-room-type="blue"] img[data-isaac-room-type="blue"]');
-  await expect(blueIcon).toHaveClass(/isaac-room-type-blue/);
-  expect(await blueIcon.getAttribute('src')).toContain('room-default');
 
   await page.getByTestId('room-tool-black-market').click();
   await dragCells(page, [8, 1], [9, 1]);
@@ -213,6 +249,10 @@ test('room types expose and accept only their valid shapes', async ({ page }) =>
   const blackMarket = page.locator('.map-room-visual[data-room-type="black-market"]');
   await expect(blackMarket).toHaveCount(1);
   await expect(blackMarket).toHaveAttribute('data-room-shape', '2x1');
+
+  await page.getByTestId('room-tool-red').click();
+  await dragCells(page, [5, 9], [6, 9]);
+  await expect(page.locator('.map-room-visual[data-room-type="red"]')).toHaveCount(0);
 });
 
 test('normal rooms can switch to canonical corridor and L previews', async ({ page }) => {
