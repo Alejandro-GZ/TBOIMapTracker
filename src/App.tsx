@@ -1,5 +1,4 @@
 import { useRef } from 'react';
-import { DIMENSIONS } from './domain/catalog';
 import { parseTrackerDocument } from './domain/serialization';
 import { RoomInspector } from './components/RoomInspector';
 import { MapGrid } from './components/MapGrid';
@@ -12,8 +11,6 @@ const safeFilename = (name: string) =>
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const document = useTrackerStore((state) => state.document);
-  const activeDimension = useTrackerStore((state) => state.activeDimension);
-  const setActiveDimension = useTrackerStore((state) => state.setActiveDimension);
   const setDocumentMeta = useTrackerStore((state) => state.setDocumentMeta);
   const loadDocument = useTrackerStore((state) => state.loadDocument);
   const newDocument = useTrackerStore((state) => state.newDocument);
@@ -98,21 +95,6 @@ export default function App() {
             />
           </div>
         </header>
-
-        <nav className="dimension-bar" aria-label="Level dimension">
-          {DIMENSIONS.map((dimension) => (
-            <button
-              type="button"
-              key={dimension.id}
-              className={activeDimension === dimension.id ? 'active' : ''}
-              onClick={() => setActiveDimension(dimension.id)}
-            >
-              <b>{dimension.short}</b>
-              <span>{dimension.label}</span>
-              <small>{document.dimensions[dimension.id].length}</small>
-            </button>
-          ))}
-        </nav>
       </div>
 
       <main className="workspace">
