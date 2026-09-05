@@ -91,7 +91,8 @@ test('builds a representative floor through the real UI and captures it', async 
 
   const treasureRoom = page.locator('.map-room-visual[data-room-type="treasure"]').first();
   await expect(treasureRoom.locator('[data-isaac-room-type="treasure"]')).toHaveAttribute('data-icon-id', 'R_TREASURE');
-  await expect(treasureRoom.getByTestId('room-pickup-layer')).toBeVisible();
+  await expect(treasureRoom.locator('.map-room-content-row')).toHaveClass(/split-content/);
+  await expect(treasureRoom.getByTestId('room-pickup-layer')).toHaveAttribute('data-pickup-layout', 'column');
   await expect(treasureRoom.getByTestId('room-pickup-layer').locator('.room-pickup-token')).toHaveCount(1);
   await expect(treasureRoom.locator('.room-pickup-overflow')).toHaveText('+1');
 
@@ -116,23 +117,51 @@ test('builds a representative floor through the real UI and captures it', async 
   await page.screenshot({ path: testInfo.outputPath('full-workspace.png'), fullPage: false, animations: 'disabled' });
 });
 
-test('uses the requested map icon semantics', async ({ page }) => {
-  await expect(page.getByTestId('room-tool-normal').locator('[data-icon-id="R_NORMAL"]')).toHaveCount(1);
+test('centers icon-only rooms and splits only rooms that have contents', async ({ page }) => {
+  await page.getByTestId('room-tool-shop').click();
+  await page.getByTestId('map-cell-3-3').click();
 
+  const shop = page.locator('.map-room-visual[data-room-type="shop"]');
+  const contentRow = shop.locator('.map-room-content-row');
+  await expect(contentRow).toHaveClass(/icon-only/);
+  await expect(contentRow).not.toHaveClass(/split-content/);
+
+  const rowBox = await contentRow.boundingBox();
+  const iconBox = await shop.locator('.map-room-type-icon').boundingBox();
+  if (!rowBox || !iconBox) throw new Error('Shop icon is not visible');
+  expect(Math.abs((rowBox.x + rowBox.width / 2) - (iconBox.x + iconBox.width / 2))).toBeLessThan(2);
+
+  await addContent(page, 'P_PENNY');
+  await expect(contentRow).toHaveClass(/split-content/);
+});
+
+test('uses requested map icon semantics and pickup orientation', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
   await page.getByTestId('map-cell-1-1').click();
-  await expect(page.locator('.map-room-visual[data-room-type="normal"] [data-isaac-room-type]')).toHaveCount(0);
+  await addContent(page, 'P_KEY');
+  await addContent(page, 'P_BOMB');
+  const normal = page.locator('.map-room-visual[data-room-type="normal"]');
+  await expect(normal.locator('[data-isaac-room-type]')).toHaveCount(0);
+  await expect(normal.getByTestId('room-pickup-layer')).toHaveAttribute('data-pickup-layout', 'column');
 
-  await page.getByTestId('room-tool-blue').click();
-  await page.getByTestId('map-cell-3-1').click();
-  await expect(page.locator('.map-room-visual[data-room-type="blue"] [data-isaac-room-type]')).toHaveCount(0);
+  const columnPickup = normal.locator('.room-pickup-token');
+  const columnOverflow = normal.locator('.room-pickup-overflow');
+  const columnPickupBox = await columnPickup.boundingBox();
+  const columnOverflowBox = await columnOverflow.boundingBox();
+  if (!columnPickupBox || !columnOverflowBox) throw new Error('Column pickup summary missing');
+  expect(columnOverflowBox.y).toBeGreaterThan(columnPickupBox.y);
+  await expect(columnOverflow).toHaveCSS('font-family', /PF Tempesta Seven Condensed/);
 
-  await page.getByTestId('room-tool-red').click();
-  await page.getByTestId('map-cell-5-1').click();
-  const redRoom = page.locator('.map-room-visual[data-room-type="red"]');
-  await expect(redRoom.locator('[data-isaac-room-type]')).toHaveCount(0);
-  const redFilter = await redRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
-  expect(redFilter).toContain('saturate(8.5)');
+  await page.getByTestId('room-tool-normal').click();
+  await dragCells(page, [3, 1], [4, 1]);
+  await addContent(page, 'P_FULLHEART');
+  await addContent(page, 'P_PENNY');
+  const horizontal = page.locator('.map-room-visual[data-room-shape="2x1"]').first();
+  await expect(horizontal.getByTestId('room-pickup-layer')).toHaveAttribute('data-pickup-layout', 'row');
+  const rowPickupBox = await horizontal.locator('.room-pickup-token').boundingBox();
+  const rowOverflowBox = await horizontal.locator('.room-pickup-overflow').boundingBox();
+  if (!rowPickupBox || !rowOverflowBox) throw new Error('Row pickup summary missing');
+  expect(rowOverflowBox.x).toBeGreaterThan(rowPickupBox.x);
 
   await page.getByTestId('room-tool-secret-exit').click();
   await page.getByTestId('map-cell-7-1').click();
@@ -143,45 +172,76 @@ test('uses the requested map icon semantics', async ({ page }) => {
   await expect(page.locator('.map-room-visual[data-room-type="other"] [data-icon-id="R_UNKNOWN"]')).toHaveCount(1);
 });
 
-test('special rooms can use flexible shapes while fixed types stay constrained', async ({ page }) => {
+test('special room picker exposes only vanilla-supported shapes', async ({ page }) => {
   await page.getByTestId('room-tool-curse').click();
-  await dragCells(page, [1, 2], [2, 2]);
-  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveAttribute('data-room-shape', '2x1');
+  await dragCells(page, [1, 3], [2, 3]);
+  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveCount(0);
+  await page.getByTestId('map-cell-1-3').click();
+  await expect(page.getByTestId('room-shape-button')).toBeDisabled();
 
   await page.getByTestId('room-tool-planetarium').click();
-  await dragPath(page, [[8, 8], [9, 8], [9, 9]]);
-  await expect(page.locator('.map-room-visual[data-room-type="planetarium"]')).toHaveAttribute('data-room-shape', 'LBL');
-
-  await page.getByTestId('room-tool-shop').click();
-  await dragCells(page, [3, 3], [4, 3]);
-  await expect(page.locator('.map-room-visual[data-room-type="shop"]')).toHaveCount(0);
-
-  await page.getByTestId('room-tool-boss').click();
-  await page.getByTestId('map-cell-5-3').click();
+  await page.getByTestId('map-cell-8-8').click();
   await page.getByTestId('room-shape-button').click();
-  await expect(page.getByTestId('shape-option-2x2')).toBeVisible();
+  await expect(page.getByTestId('shape-option-1x1')).toBeVisible();
+  await expect(page.getByTestId('shape-option-IH')).toBeVisible();
+  await expect(page.getByTestId('shape-option-IV')).toBeVisible();
+  await expect(page.getByTestId('shape-option-2x1')).toHaveCount(0);
   await expect(page.getByTestId('shape-option-LTL')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close shape picker' }).click();
+
+  await page.getByTestId('room-tool-library').click();
+  await page.getByTestId('map-cell-10-6').click();
+  await page.getByTestId('room-shape-button').click();
+  await expect(page.getByTestId('shape-option-IV')).toBeVisible();
+  await expect(page.getByTestId('shape-option-IH')).toHaveCount(0);
 });
 
-test('inspector v2 edits type, shape, mark and grouped contents', async ({ page }) => {
+test('narrow rooms reject neighbors on sides without doors', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
+  await page.getByTestId('map-cell-4-4').click();
+  await page.getByTestId('room-shape-button').click();
+  await page.getByTestId('shape-option-IH').click();
+  await expect(page.locator('.map-room-visual[data-room-shape="IH"]')).toHaveCount(1);
+
+  await page.getByTestId('map-cell-4-3').click();
+  await expect(page.locator('.map-room-visual')).toHaveCount(2); // start + IH only
+
   await page.getByTestId('map-cell-3-4').click();
+  await expect(page.locator('.map-room-visual')).toHaveCount(3);
+
+  await page.getByTestId('map-cell-8-4').click();
+  await page.getByTestId('room-shape-button').click();
+  await page.getByTestId('shape-option-IV').click();
+  await page.getByTestId('map-cell-7-4').click();
+  await expect(page.locator('.map-room-visual')).toHaveCount(4); // blocked left side
+  await page.getByTestId('map-cell-8-3').click();
+  await expect(page.locator('.map-room-visual')).toHaveCount(5);
+});
+
+test('structure marker sprites are never recoloured by room styles', async ({ page }) => {
+  await page.getByTestId('room-tool-treasure').click();
+  await page.getByTestId('map-cell-4-4').click();
+  await page.getByTestId('add-content-button').click();
+  await page.getByRole('button', { name: 'Structs', exact: true }).click();
+
+  for (const id of ['S_BEGGAR', 'S_BLOODDONATION', 'S_DRESSER']) {
+    const sprite = page.getByTestId(`marker-option-${id}`).locator('.pickup-sprite');
+    await expect(sprite).toHaveCSS('filter', 'none');
+    await expect(sprite).toHaveCSS('opacity', '1');
+  }
+});
+
+test('inspector keeps mark and grouped contents behavior', async ({ page }) => {
+  await page.getByTestId('room-tool-normal').click();
+  await page.getByTestId('map-cell-3-6').click();
 
   await expect(page.getByTestId('room-type-select')).toBeVisible();
   await expect(page.getByText('Move', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Visited / revealed', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Delete room' })).toBeVisible();
 
-  await page.getByTestId('room-type-select').selectOption('curse');
-  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveCount(1);
-
-  await page.getByTestId('room-shape-button').click();
-  await page.getByTestId('shape-option-2x1').click();
-  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveAttribute('data-room-shape', '2x1');
-
   await page.getByTestId('room-mark-checkbox').check();
-  const markedRoom = page.locator('.map-room-visual[data-room-type="curse"]');
-  await expect(markedRoom).toHaveAttribute('data-room-marked', 'true');
+  const markedRoom = page.locator('.map-room-visual[data-room-marked="true"]');
+  await expect(markedRoom).toHaveCount(1);
   const markFilter = await markedRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
   expect(markFilter).toContain('drop-shadow');
 
@@ -191,12 +251,6 @@ test('inspector v2 edits type, shape, mark and grouped contents', async ({ page 
   await expect(token).toContainText('×2');
   await token.click();
   await expect(page.getByTestId('content-token-list').locator('.content-token').first()).not.toContainText('×2');
-
-  await page.getByTestId('add-content-button').click();
-  await page.getByRole('button', { name: 'Structs', exact: true }).click();
-  await page.getByTestId('marker-option-S_DONATION').click();
-  await page.getByRole('button', { name: 'Close contents picker' }).click();
-  await expect(page.getByTestId('content-token-list').locator('[data-icon-id="S_DONATION"]')).toHaveCount(1);
 });
 
 test('pixel icons keep valid intrinsic integer scaling', async ({ page }) => {
