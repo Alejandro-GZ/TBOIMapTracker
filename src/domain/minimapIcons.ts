@@ -26,8 +26,10 @@ export const ROOM_ICON_BY_TYPE: Partial<Record<RoomTypeId, MinimapIconId>> = {
   normal: 'R_NORMAL', start: 'R_START', shop: 'R_SHOP', treasure: 'R_TREASURE', boss: 'R_BOSS', miniboss: 'R_MINIBOSS',
   secret: 'R_SECRET', 'super-secret': 'R_SUPERSECRET', 'ultra-secret': 'R_ULTRASECRET', arcade: 'R_ARCADE', curse: 'R_CURSE',
   challenge: 'R_NCHALLENGE', 'boss-challenge': 'R_BCHALLENGE', library: 'R_LIBRARY', sacrifice: 'R_SACRIFICE', dice: 'R_DICE',
-  planetarium: 'R_PLANETARIUM', bedroom: 'R_ISAACS', devil: 'R_DEVIL', angel: 'R_ANGEL', error: 'R_ERROR',
-  blue: 'R_NORMAL', red: 'R_NORMAL', 'black-market': 'R_SHOP', 'secret-exit': 'R_CRAWLSPACE', other: 'R_UNKNOWN',
+  planetarium: 'R_PLANETARIUM', bedroom: 'R_ISAACS', 'dirty-bedroom': 'R_BARREN', 'chest-room': 'R_CHEST', mirror: 'R_MIRROR',
+  rails: 'R_RAILS', 'red-treasure': 'R_RTREASURE', 'silver-treasure': 'R_STREASURE', teleporter: 'R_TELEPORTER',
+  devil: 'R_DEVIL', angel: 'R_ANGEL', error: 'R_ERROR', blue: 'R_NORMAL', red: 'R_NORMAL', 'black-market': 'R_SHOP',
+  'secret-exit': 'R_CRAWLSPACE', other: 'R_UNKNOWN',
 };
 
 /** Palette/inspector still show a key for these rooms, but the real minimap
