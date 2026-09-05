@@ -25,8 +25,9 @@ const BLACK_MARKET_SHAPES: readonly RoomShapeId[] = ['2x1'];
  * Normal rooms are the only regular floor rooms that use the full RoomShape
  * catalogue. Named special rooms are fixed to their vanilla minimap footprint,
  * with the notable exceptions of boss rooms (regular/double/2x2 arenas) and
- * the two-rooms-wide Black Market. `other` intentionally remains unrestricted
- * as an escape hatch for unusual scripted rooms.
+ * the two-rooms-wide Black Market. Blue/Red tracker rooms are both single-cell
+ * coloured room variants. `other` intentionally remains unrestricted as an
+ * escape hatch for unusual scripted rooms.
  */
 export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]> = {
   normal: ALL_SHAPES,
@@ -52,6 +53,7 @@ export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]
   'black-market': BLACK_MARKET_SHAPES,
   error: SINGLE_ROOM,
   blue: SINGLE_ROOM,
+  red: SINGLE_ROOM,
   'secret-exit': SINGLE_ROOM,
   other: ALL_SHAPES,
 };

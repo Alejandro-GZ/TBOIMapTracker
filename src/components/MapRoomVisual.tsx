@@ -30,6 +30,8 @@ const ROOM_ART_SCALE: Record<RoomShapeId, number> = {
   LBR: 1,
 };
 
+const ROOM_TYPES_WITHOUT_MAP_ICON = new Set<Room['type']>(['normal', 'blue', 'red']);
+
 export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const bounds = getShapeBounds(room.shape);
   const center = getShapeVisualCenter(room.shape);
@@ -42,6 +44,8 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     '--room-art-scale': ROOM_ART_SCALE[room.shape],
   } as CSSProperties;
 
+  const showRoomIcon = !ROOM_TYPES_WITHOUT_MAP_ICON.has(room.type);
+
   return (
     <div
       className={`map-room-visual ${selected ? 'selected' : ''} ${room.visited ? 'visited' : 'unvisited'}`}
@@ -52,9 +56,11 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
       aria-hidden="true"
     >
       <RoomShapeSprite shape={room.shape} />
-      <span className="map-room-type-icon">
-        <RoomTypeSprite type={room.type} scale={2} />
-      </span>
+      {showRoomIcon ? (
+        <span className="map-room-type-icon">
+          <RoomTypeSprite type={room.type} scale={2} />
+        </span>
+      ) : null}
       <RoomPickupLayer pickups={room.pickups} />
     </div>
   );

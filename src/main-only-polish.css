@@ -69,3 +69,81 @@
 .grid-cell.drag-preview {
   border-style: solid;
 }
+
+/* Blue/Red rooms are encoded by the room body itself, not by a symbol in the
+ * minimap. Keep the source RoomShape untouched and recolor it uniformly. */
+.map-room-visual[data-room-type='blue'] .isaac-room-shape {
+  filter: sepia(.25) saturate(4.4) hue-rotate(162deg) brightness(.92) contrast(1.08) !important;
+}
+
+.map-room-visual[data-room-type='red'] .isaac-room-shape {
+  filter: sepia(.42) saturate(5.2) hue-rotate(318deg) brightness(.88) contrast(1.1) !important;
+}
+
+/* Palette/inspector previews can still use ROOM_DEFAULT as a small colour key;
+ * the actual map rooms deliberately render with no type icon. */
+.isaac-room-type-blue {
+  filter: sepia(.25) saturate(4.4) hue-rotate(162deg) brightness(.92) contrast(1.08);
+}
+
+.isaac-room-type-red {
+  filter: sepia(.42) saturate(5.2) hue-rotate(318deg) brightness(.88) contrast(1.1);
+}
+
+/* Use the whole supplied left paper sheet as the room menu. The three groups
+ * share vertical space according to their number of two-column rows, so the
+ * menu scales with the panel instead of bunching all controls at the top. */
+.palette-panel {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 3fr) minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(3px, .55vh, 7px);
+  overflow: hidden !important;
+}
+
+.palette-panel .palette-title {
+  min-height: 0;
+  margin: 0 !important;
+}
+
+.palette-panel .palette-group {
+  min-height: 0;
+  margin: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.palette-panel .palette-group h3 {
+  flex: 0 0 auto;
+  margin-bottom: 3px !important;
+}
+
+.palette-panel .room-palette-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  gap: clamp(2px, .35vh, 5px) 4px !important;
+}
+
+.palette-panel .room-tool {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+  padding: 2px 1px !important;
+  align-content: center;
+}
+
+.palette-panel .room-tool-icon {
+  width: clamp(20px, 2.2vh, 25px);
+  height: clamp(20px, 2.2vh, 25px);
+  min-width: 0;
+  min-height: 0;
+}
+
+.palette-panel .room-tool span:nth-child(2) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

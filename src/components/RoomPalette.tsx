@@ -19,7 +19,7 @@ export function RoomPalette() {
       </div>
 
       {(['core', 'special', 'hidden'] as const).map((group) => (
-        <section className="palette-group" key={group}>
+        <section className={`palette-group palette-group-${group}`} key={group}>
           <h3>{GROUP_LABELS[group]}</h3>
           <div className="room-palette-grid">
             {ROOM_TYPES.filter((roomType) => roomType.group === group).map((roomType) => (
