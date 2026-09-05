@@ -3,6 +3,7 @@ import { PICKUP_META, ROOM_SHAPES, ROOM_TYPES, getRoomTypeMeta } from '../domain
 import { countUniqueAdjacencies, gridIndex } from '../domain/geometry';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
+import { PickupSprite, RoomTypeSprite } from './IsaacSprite';
 
 const QUICK_PICKUPS: PickupKind[] = ['coin', 'key', 'bomb', 'heart', 'chest', 'battery'];
 
@@ -61,7 +62,12 @@ export function RoomInspector() {
       <div className="panel-heading inspector-title">
         <div>
           <span className="eyebrow">Room inspector</span>
-          <h2><span className={`type-chip tone-${meta.tone}`}>{meta.icon}</span>{meta.label}</h2>
+          <h2>
+            <span className={`type-chip tone-${meta.tone}`}>
+              <RoomTypeSprite type={room.type} fallback={meta.icon} scale={1.25} />
+            </span>
+            {meta.label}
+          </h2>
         </div>
         <span className="grid-index-pill">#{gridIndex(room.anchor)}</span>
       </div>
@@ -120,7 +126,9 @@ export function RoomInspector() {
               onClick={() => addPickup(room.id, { kind, label: PICKUP_META[kind].label, quantity: 1 })}
               title={`Add ${PICKUP_META[kind].label}`}
             >
-              <strong>{PICKUP_META[kind].icon}</strong>
+              <strong>
+                <PickupSprite kind={kind} fallback={PICKUP_META[kind].icon} scale={1.25} />
+              </strong>
               <span>+1</span>
             </button>
           ))}
@@ -139,7 +147,9 @@ export function RoomInspector() {
           {room.pickups.length === 0 && <p className="muted">Nothing recorded in this room yet.</p>}
           {room.pickups.map((pickup) => (
             <div className="pickup-row" key={pickup.id}>
-              <span className="pickup-icon">{PICKUP_META[pickup.kind].icon}</span>
+              <span className="pickup-icon">
+                <PickupSprite kind={pickup.kind} fallback={PICKUP_META[pickup.kind].icon} scale={1.25} />
+              </span>
               <span className="pickup-name">{pickup.label}</span>
               <strong>×{pickup.quantity}</strong>
               <button type="button" className="icon-button danger" onClick={() => removePickup(room.id, pickup.id)} aria-label={`Remove ${pickup.label}`}>×</button>
