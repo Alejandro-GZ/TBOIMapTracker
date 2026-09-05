@@ -10,12 +10,12 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
+    ...devices['Desktop Chrome'],
     baseURL: 'http://127.0.0.1:4173/TBOIMapTracker/',
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    ...devices['Desktop Chrome'],
   },
   webServer: {
     command: 'npm run dev -- --host 127.0.0.1 --port 4173',
