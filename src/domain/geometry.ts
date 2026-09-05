@@ -170,3 +170,40 @@ export const countUniqueAdjacencies = (room: Room, rooms: Room[]) => {
   }
   return neighbors.size;
 };
+
+export interface RoomConnection {
+  point: GridPoint;
+  direction: 'right' | 'down';
+  roomA: string;
+  roomB: string;
+}
+
+/**
+ * Every boundary where two distinct room footprints touch is a visual minimap
+ * connection. Internal boundaries inside a multi-cell room are intentionally
+ * ignored. Keeping this as geometry (instead of CSS generated from hit cells)
+ * makes doors testable and lets the interaction grid stay completely invisible.
+ */
+export const getRoomConnections = (rooms: Room[]): RoomConnection[] => {
+  const occupancy = buildOccupancy(rooms);
+  const result: RoomConnection[] = [];
+
+  for (let y = 0; y < GRID_SIZE; y += 1) {
+    for (let x = 0; x < GRID_SIZE; x += 1) {
+      const room = occupancy.get(coordinateKey({ x, y }));
+      if (!room) continue;
+
+      const right = occupancy.get(coordinateKey({ x: x + 1, y }));
+      if (right && right.id !== room.id) {
+        result.push({ point: { x, y }, direction: 'right', roomA: room.id, roomB: right.id });
+      }
+
+      const down = occupancy.get(coordinateKey({ x, y: y + 1 }));
+      if (down && down.id !== room.id) {
+        result.push({ point: { x, y }, direction: 'down', roomA: room.id, roomB: down.id });
+      }
+    }
+  }
+
+  return result;
+};

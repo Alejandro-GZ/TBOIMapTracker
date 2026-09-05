@@ -7,6 +7,7 @@ import {
 } from '../domain/geometry';
 import { GRID_SIZE, type GridPoint } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
+import { MapDoorLayer } from './MapDoorLayer';
 import { MapRoomVisual } from './MapRoomVisual';
 
 interface DragSelection {
@@ -33,7 +34,6 @@ export function MapGrid() {
 
   const rooms = document.dimensions[activeDimension];
   const occupancy = useMemo(() => buildOccupancy(rooms), [rooms]);
-  const axis = useMemo(() => Array.from({ length: GRID_SIZE }, (_, index) => index), []);
 
   const dragPreview = useMemo(() => {
     if (!dragSelection) return null;
@@ -119,16 +119,15 @@ export function MapGrid() {
       const key = coordinateKey(point);
       const room = occupancy.get(key);
       const meta = room ? getRoomTypeMeta(room.type) : null;
-      const right = occupancy.get(coordinateKey({ x: x + 1, y }));
-      const down = occupancy.get(coordinateKey({ x, y: y + 1 }));
-      const connectedRight = Boolean(room && right && right.id !== room.id);
-      const connectedDown = Boolean(room && down && down.id !== room.id);
       const inDragPreview = Boolean(dragPreview?.keys.has(key));
 
       cells.push(
         <button
           type="button"
           key={`${x}-${y}`}
+          data-testid={`map-cell-${x}-${y}`}
+          data-grid-x={x}
+          data-grid-y={y}
           className={[
             'grid-cell',
             room ? 'occupied' : 'empty',
@@ -178,8 +177,8 @@ export function MapGrid() {
           }}
           aria-label={room ? `${meta?.label ?? 'Room'} at ${x}, ${y}` : `Empty cell ${x}, ${y}`}
         >
-          {connectedRight && <span className="connector connector-right" aria-hidden="true" />}
-          {connectedDown && <span className="connector connector-down" aria-hidden="true" />}
+          {y === 0 && <span className="matrix-coordinate matrix-coordinate-x" aria-hidden="true">{x}</span>}
+          {x === 0 && <span className="matrix-coordinate matrix-coordinate-y" aria-hidden="true">{y}</span>}
         </button>,
       );
     }
@@ -206,16 +205,9 @@ export function MapGrid() {
         </div>
       </div>
 
-      <div className="map-viewport" ref={viewportRef}>
+      <div className="map-viewport" ref={viewportRef} data-testid="map-viewport">
         <div className="map-zoom-surface" style={zoomStyle}>
           <div className="map-matrix">
-            <div className="axis-corner" aria-hidden="true">·</div>
-            <div className="map-axis map-axis-top" aria-label="Map x coordinates">
-              {axis.map((value) => <span key={value}>{value}</span>)}
-            </div>
-            <div className="map-axis map-axis-left" aria-label="Map y coordinates">
-              {axis.map((value) => <span key={value}>{value}</span>)}
-            </div>
             <div className={`map-grid-stack ${showIndices ? 'show-guides' : ''}`}>
               <div
                 className="map-render-layer"
@@ -226,6 +218,7 @@ export function MapGrid() {
                   <MapRoomVisual key={room.id} room={room} selected={room.id === selectedRoomId} />
                 ))}
               </div>
+              <MapDoorLayer rooms={rooms} />
               <div className="level-grid interaction-grid">{cells}</div>
             </div>
           </div>

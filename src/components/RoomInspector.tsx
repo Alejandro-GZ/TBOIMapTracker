@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { PICKUP_META, ROOM_SHAPES, ROOM_TYPES, getRoomTypeMeta } from '../domain/catalog';
+import { PICKUP_META, ROOM_TYPES, getRoomTypeMeta } from '../domain/catalog';
 import { countUniqueAdjacencies, gridIndex } from '../domain/geometry';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { PickupSprite, RoomTypeSprite } from './IsaacSprite';
+import { RoomShapePicker } from './RoomShapePicker';
 
 const QUICK_PICKUPS: PickupKind[] = ['coin', 'key', 'bomb', 'heart', 'chest', 'battery'];
 
@@ -58,7 +59,7 @@ export function RoomInspector() {
   };
 
   return (
-    <aside className="panel inspector-panel">
+    <aside className="panel inspector-panel" data-testid="room-inspector">
       <div className="panel-heading inspector-title">
         <div>
           <span className="eyebrow">Room inspector</span>
@@ -78,20 +79,26 @@ export function RoomInspector() {
         </div>
       )}
 
-      <div className="field-grid two-columns">
+      <div className="field-grid">
         <label>
           <span>Type</span>
-          <select value={room.type} onChange={(event) => patchRoom(room.id, { type: event.target.value as RoomTypeId })}>
+          <select
+            value={room.type}
+            onChange={(event) => patchRoom(room.id, { type: event.target.value as RoomTypeId })}
+            data-testid="room-type-select"
+          >
             {ROOM_TYPES.map((roomType) => <option key={roomType.id} value={roomType.id}>{roomType.label}</option>)}
           </select>
         </label>
-        <label>
-          <span>Shape</span>
-          <select value={room.shape} onChange={(event) => handleShape(event.target.value as RoomShapeId)}>
-            {ROOM_SHAPES.map((shape) => <option key={shape.id} value={shape.id}>{shape.label}</option>)}
-          </select>
-        </label>
       </div>
+
+      <section className="inspector-section shape-inspector-section">
+        <div className="section-title-row">
+          <h3>Room shape</h3>
+          <span>{room.shape}</span>
+        </div>
+        <RoomShapePicker value={room.shape} onChange={handleShape} />
+      </section>
 
       <div className="room-facts">
         <span>Anchor ({room.anchor.x}, {room.anchor.y})</span>
@@ -123,6 +130,7 @@ export function RoomInspector() {
             <button
               type="button"
               key={kind}
+              data-testid={`quick-pickup-${kind}`}
               onClick={() => addPickup(room.id, { kind, label: PICKUP_META[kind].label, quantity: 1 })}
               title={`Add ${PICKUP_META[kind].label}`}
             >

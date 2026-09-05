@@ -1,31 +1,63 @@
 # Visual asset provenance
 
-TBOI Map Tracker keeps its map/domain model independent from game artwork. The current visual skin renders room silhouettes, room-type icons and pickup icons from MiniMAPI assets at runtime.
+TBOI Map Tracker keeps its map/domain model independent from artwork. The actual floor map now uses the same **RoomShape previews** and **RoomType icons** shown by IsaacDocs, pinned to one documentation revision. Pickup icons remain a separate secondary skin because the RoomShape/RoomType tables do not cover pickups.
 
-## MiniMAPI sprite sheets
+## Canonical room visuals — IsaacDocs
 
-- Project: **MiniMAPI / MinimapAPI**
+- Project: **BoI Lua API Docs / IsaacDocs**
+- Upstream repository: https://github.com/wofsauge/IsaacDocs
+- Pinned revision: `646e1761addcc236081ad291fee20f3d04bbbf52`
+- RoomShape enum source: `docs/enums/RoomShape.md`
+- RoomType enum source: `docs/enums/RoomType.md`
+
+### RoomShape previews
+
+Runtime assets are loaded from:
+
+```text
+docs/images/roomshapes/1.png  -> ROOMSHAPE_1x1
+docs/images/roomshapes/2.png  -> ROOMSHAPE_IH
+docs/images/roomshapes/3.png  -> ROOMSHAPE_IV
+docs/images/roomshapes/4.png  -> ROOMSHAPE_1x2
+docs/images/roomshapes/5.png  -> ROOMSHAPE_IIV
+docs/images/roomshapes/6.png  -> ROOMSHAPE_2x1
+docs/images/roomshapes/7.png  -> ROOMSHAPE_IIH
+docs/images/roomshapes/8.png  -> ROOMSHAPE_2x2
+docs/images/roomshapes/9.png  -> ROOMSHAPE_LTL
+docs/images/roomshapes/10.png -> ROOMSHAPE_LTR
+docs/images/roomshapes/11.png -> ROOMSHAPE_LBL
+docs/images/roomshapes/12.png -> ROOMSHAPE_LBR
+```
+
+### RoomType icons
+
+The adapter maps tracker room types to the corresponding IsaacDocs `roomtypes/<value>.png` image where the docs expose one. Examples include Shop `2`, Treasure `4`, Boss `5`, Secret `7`, Super Secret `8`, Curse `10`, Library `12`, Sacrifice `13`, Devil `14`, Angel `15`, Dice `21`, Planetarium `24`, and Ultra Secret `29`. Boss Challenge uses the dedicated challenge icon `17` documented in the RoomType table.
+
+Normal and Starting rooms intentionally render no additional type glyph. Tracker-only/off-grid types without a canonical RoomType icon keep a text fallback in controls, but the map itself does not invent a fake game icon.
+
+The PNGs are **not copied into this repository**. `src/components/IsaacSprite.tsx` references immutable raw URLs for the pinned IsaacDocs commit. No CSS blur, drop-shadow, contrast, or brightness filter is applied to the canonical room art.
+
+## Pickup skin — MiniMAPI
+
+Pickups are a separate layer and currently use MiniMAPI's minimap icon sheet because the two IsaacDocs enum tables used for canonical room rendering do not define pickup art.
+
 - Upstream repository: https://github.com/TazTxUK/MinimapAPI
 - Pinned revision: `ca7ecb5a256887963129fa6314e8babb6a3d3cb6`
-
-### Room and pickup icons
-
 - Runtime sheet: `resources/gfx/ui/minimapapi/minimapapi_icons.png`
-- Frame metadata: `resources/gfx/ui/minimapapi_icons.anm2`
-- Frame size used by the tracker: `16 × 16`
 
-### Room silhouettes
+MiniMAPI is **not** used anymore for RoomShape silhouettes or RoomType icons.
 
-- Runtime sheet: `resources/gfx/ui/minimapapi/custom_minimap2.png`
-- Frame metadata: `resources/gfx/ui/minimapapi/custom_minimap2.anm2`
-- The 12 animation frames map in RoomShape enum order to `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2`, `LTL`, `LTR`, `LBL`, and `LBR`.
+## Fonts
 
-The PNGs are **not copied into this repository**. `src/components/IsaacSprite.tsx` points at immutable raw files for the pinned revision and crops the appropriate frames using coordinates from the matching `.anm2` files. Room silhouettes are rendered through a cropped SVG view so they can scale cleanly with the responsive 13 × 13 editor while preserving the pixel-art source.
+The UI uses fonts that IsaacDocs documents as game fonts:
 
-This prevents upstream changes from silently changing the UI. Room/pickup type sprites keep text-symbol fallbacks where no reliable frame is mapped.
+- **PF Tempesta Seven (Condensed)** — HUD elements such as coin/key counters; used as the default tracker UI font.
+- **Upheaval** — streak/title treatment; used only for prominent headings and the brand.
+
+The app loads web-font CSS at runtime and does not redistribute font files in the repository.
 
 ## Rights / attribution
 
-MiniMAPI is a community project by TazTxUK and contributors. The Binding of Isaac names, imagery and related game assets remain the property of their respective rights holders. This repository does not claim ownership over upstream or game artwork.
+IsaacDocs and MiniMAPI are community projects. The Binding of Isaac names, imagery and related game assets remain the property of their respective rights holders. This repository does not claim ownership over upstream or game artwork.
 
-If a fully self-contained/offline skin is desired, users who own the game can extract their local Repentance+ resources with the official `ResourceExtractor` and replace the sprite-sheet URLs in the adapter with their own locally hosted assets.
+Users who want a fully self-contained/offline skin can extract their own Repentance+ resources with the game's `ResourceExtractor` and point the visual adapter at their locally hosted copies.

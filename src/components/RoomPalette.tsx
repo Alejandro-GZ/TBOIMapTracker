@@ -29,6 +29,7 @@ export function RoomPalette() {
               <button
                 type="button"
                 key={roomType.id}
+                data-testid={`room-tool-${roomType.id}`}
                 className={`room-tool tone-${roomType.tone} ${placementType === roomType.id ? 'active' : ''}`}
                 onClick={() => setPlacementType(roomType.id)}
                 title={roomType.offGrid ? `${roomType.label} — off-grid internally in Isaac` : roomType.label}

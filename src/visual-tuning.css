@@ -1,0 +1,37 @@
+/* Final visual tuning validated from Playwright screenshots. */
+.map-matrix {
+  position: relative;
+  display: block;
+  padding-top: 18px;
+  padding-left: 22px;
+}
+
+.map-grid-stack {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.matrix-coordinate {
+  position: absolute;
+  z-index: 20;
+  color: #b1a79a;
+  font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 1px 1px 0 #000, 0 0 3px #000;
+  pointer-events: none;
+  user-select: none;
+}
+
+.matrix-coordinate-x {
+  left: 50%;
+  top: -15px;
+  transform: translateX(-50%);
+}
+
+.matrix-coordinate-y {
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+}

@@ -1,20 +1,17 @@
 @import url('https://fonts.cdnfonts.com/css/upheaval');
 @import url('https://fonts.cdnfonts.com/css/pf-tempesta-seven');
 
-/*
- * Viewport + map interaction layer.
- * Loaded last so this file intentionally overrides the older dashboard-era
- * layout rules without coupling map rendering to the rest of the UI.
- */
-
 :root {
   font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
-  --isaac-black: #070605;
-  --isaac-deep: #0d0907;
-  --isaac-brown: #21150f;
-  --isaac-bone: #d0c7b8;
-  --isaac-bone-dim: #82786c;
-  --isaac-grid: rgba(127, 117, 104, .18);
+  --isaac-black: #050403;
+  --isaac-deep: #090705;
+  --isaac-brown: #1d120c;
+  --isaac-paper: #1b1612;
+  --isaac-paper-hi: #261f19;
+  --isaac-bone: #d3cbc0;
+  --isaac-bone-dim: #80776d;
+  --isaac-line: #3a3028;
+  --isaac-grid: rgba(146, 135, 122, .18);
 }
 
 html,
@@ -23,6 +20,7 @@ body,
   width: 100%;
   height: 100%;
   min-height: 0;
+  margin: 0;
   overflow: hidden;
 }
 
@@ -30,6 +28,8 @@ body {
   overscroll-behavior: none;
   font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
   -webkit-font-smoothing: none;
+  text-rendering: geometricPrecision;
+  background: var(--isaac-black);
 }
 
 button,
@@ -37,75 +37,108 @@ input,
 select,
 textarea {
   font-family: inherit;
-  letter-spacing: .025em;
+  letter-spacing: .015em;
 }
 
 .app-shell {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
+  background:
+    radial-gradient(ellipse at 38% 22%, rgba(70, 38, 23, .10), transparent 31%),
+    #070503;
 }
 
+/* Compact HUD: the map gets the browser height, side panels scroll internally. */
 .topbar {
   position: relative;
   top: auto;
-  flex: 0 0 60px;
-  min-height: 60px;
-  height: 60px;
-  padding: 7px 12px;
-  gap: 12px;
+  flex: 0 0 56px;
+  min-height: 56px;
+  height: 56px;
+  padding: 6px 10px;
+  gap: 10px;
+  border-bottom: 2px solid #1b130e;
+  background: linear-gradient(#17110d, #090705);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .55);
 }
 
+.brand { min-width: 190px; }
 .brand-mark {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   font-family: 'Upheaval TT (BRK)', 'Courier New', monospace;
-  font-size: 20px;
+  font-size: 19px;
+  background: #beb6aa;
+  border-color: #050403;
+  box-shadow: 0 0 0 1px #665b50;
 }
-
 .brand strong,
 h2,
 h3 {
   font-family: 'Upheaval TT (BRK)', 'Courier New', monospace;
 }
+.brand strong { font-size: 15px; }
+.brand span { color: #70675e; font-size: 7px; }
 
-.brand span,
+.run-meta { width: min(590px, 100%); gap: 5px; }
+.run-meta input {
+  height: 29px;
+  border-radius: 0;
+  border-color: #302820;
+  background: #0b0907;
+  box-shadow: inset 0 0 6px #000;
+  font-size: 9px;
+}
+.top-actions { gap: 3px; }
+.top-actions button {
+  min-height: 29px;
+  padding: 4px 7px;
+  border-radius: 0;
+  border-color: #342a22;
+  background: #0c0907;
+  font-size: 8px;
+}
+.top-actions .active-button {
+  color: #17120e;
+  background: #bdb4a6;
+  border-color: #d6cec1;
+}
+
+.dimension-bar {
+  position: relative;
+  top: auto;
+  flex: 0 0 35px;
+  min-height: 35px;
+  height: 35px;
+  padding: 2px 10px;
+  overflow: hidden;
+  border-bottom-color: #1c1510;
+  background: #080604;
+}
+.dimension-bar button {
+  min-height: 27px;
+  padding: 2px 7px;
+  border-radius: 0;
+  font-size: 8px;
+}
 .dimension-label,
 .dimension-bar button b,
 .eyebrow,
-.shape-section label,
 .field-grid label > span,
 .notes-field > span,
 .tip-card strong {
   font-family: inherit;
 }
 
-.brand strong { font-size: 16px; }
-.brand span { font-size: 8px; }
-
-.run-meta { width: min(610px, 100%); }
-.run-meta input { height: 31px; }
-.top-actions button { min-height: 31px; padding: 5px 8px; }
-
-.dimension-bar {
-  position: relative;
-  top: auto;
-  flex: 0 0 38px;
-  min-height: 38px;
-  height: 38px;
-  padding: 3px 12px;
-  overflow: hidden;
-}
-.dimension-bar button { min-height: 29px; padding: 3px 7px; }
-
 .workspace {
   flex: 1 1 auto;
   min-height: 0;
   height: auto;
   overflow: hidden;
-  padding: 7px;
-  gap: 7px;
-  grid-template-columns: 200px minmax(0, 1fr) 286px;
+  padding: 5px;
+  gap: 5px;
+  grid-template-columns: 196px minmax(0, 1fr) 294px;
 }
 
 .panel {
@@ -113,21 +146,44 @@ h3 {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 11px;
+  padding: 9px;
+  border: 1px solid #332920;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 35% 12%, rgba(112, 77, 49, .08), transparent 30%),
+    linear-gradient(165deg, #1c1713, #0f0c09 72%);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, .45), 0 0 0 1px #050403;
   scrollbar-width: thin;
-  scrollbar-color: #514438 #110e0b;
+  scrollbar-color: #4a3d32 #0b0907;
 }
+.panel::before { opacity: .06; }
+.panel-heading { margin-bottom: 7px; }
+.panel h2 { font-size: 16px; }
+.panel h3 { font-size: 9px; }
 
-.panel-heading { margin-bottom: 8px; }
-.palette-group { margin-bottom: 9px; }
-.room-palette-grid { gap: 3px; }
-.room-tool { min-height: 38px; padding: 3px 5px; }
+.palette-group { margin-bottom: 8px; }
+.room-palette-grid { gap: 2px; }
+.room-tool {
+  min-height: 36px;
+  padding: 2px 4px;
+  border-radius: 0;
+  border-color: #29221c;
+  color: #aaa196;
+  background: rgba(6, 5, 4, .58);
+}
+.room-tool:hover { border-color: #584d43; background: #17120e; }
+.room-tool.active {
+  color: #17120e;
+  border-color: #cfc6b8;
+  background: #bdb4a6;
+  box-shadow: none;
+}
 .room-tool-icon { width: 22px; height: 22px; }
-.room-tool span:nth-child(2) { font-size: 9px; }
-.room-drag-help { margin-top: 9px; }
-.room-drag-help span { line-height: 1.25; }
+.room-tool span:nth-child(2) { font-size: 8px; }
+.room-drag-help { margin-top: 7px; }
+.room-drag-help span { line-height: 1.2; }
 
-/* Map viewport ----------------------------------------------------------- */
+/* Map ------------------------------------------------------------------ */
 .map-stage {
   height: 100%;
   min-height: 0;
@@ -140,42 +196,36 @@ h3 {
 }
 
 .map-stage-header {
-  flex: 0 0 36px;
+  flex: 0 0 32px;
   width: 100%;
   max-width: none;
-  min-height: 36px;
+  min-height: 32px;
   margin: 0;
-  padding: 0 6px 4px;
+  padding: 0 5px 3px;
   align-items: center;
 }
-
 .map-stage-header .eyebrow { display: none; }
 .map-stage-header h2 {
   margin: 0;
-  font-size: 20px;
-  color: #cfc7bb;
-  text-shadow: 2px 2px 0 #000;
+  color: #c9c1b5;
+  font-size: 18px;
+  text-shadow: 2px 2px #000;
 }
 
-.map-zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
+.map-zoom-controls { display: flex; align-items: center; gap: 1px; }
 .map-zoom-controls button {
-  height: 25px;
-  min-width: 26px;
-  border: 1px solid #3c332b;
+  height: 23px;
+  min-width: 24px;
+  border: 1px solid #302820;
   border-radius: 0;
-  color: #bcb3a6;
-  background: #0c0a08;
+  color: #a9a095;
+  background: #080604;
   cursor: pointer;
   box-shadow: none;
-  font-size: 12px;
+  font-size: 10px;
 }
-.map-zoom-controls button:hover { color: #fff9ed; border-color: #75695c; }
-.map-zoom-controls .zoom-value { min-width: 48px; font-size: 9px; }
+.map-zoom-controls button:hover { color: #eee7dc; border-color: #665b51; }
+.map-zoom-controls .zoom-value { min-width: 44px; font-size: 8px; }
 
 .map-viewport {
   position: relative;
@@ -185,41 +235,50 @@ h3 {
   overflow: hidden;
   display: grid;
   place-items: center;
-  border: 2px solid #15100d;
+  border: 1px solid #130e0a;
   background:
-    radial-gradient(ellipse at 22% 34%, rgba(75, 42, 24, .20), transparent 28%),
-    radial-gradient(ellipse at 72% 68%, rgba(50, 27, 17, .16), transparent 31%),
-    repeating-radial-gradient(circle at 38% 44%, rgba(255,255,255,.012) 0 1px, transparent 1px 7px),
-    var(--isaac-black);
-  box-shadow: inset 0 0 90px #000;
+    radial-gradient(ellipse at 18% 25%, rgba(82, 43, 24, .22), transparent 25%),
+    radial-gradient(ellipse at 82% 76%, rgba(52, 29, 18, .18), transparent 29%),
+    radial-gradient(circle at 55% 45%, rgba(255, 255, 255, .015), transparent 42%),
+    #050403;
+  box-shadow: inset 0 0 100px 18px #000;
   touch-action: none;
   overscroll-behavior: contain;
 }
-
+.map-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .16;
+  background:
+    repeating-radial-gradient(circle at 30% 33%, rgba(148, 95, 60, .12) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(27deg, transparent 0 31px, rgba(102, 64, 40, .035) 32px 33px, transparent 34px 59px);
+}
 .map-viewport::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  box-shadow: inset 0 0 44px 15px rgba(0,0,0,.58);
+  box-shadow: inset 0 0 55px 18px rgba(0, 0, 0, .68);
 }
 
 .map-zoom-surface {
-  width: min(96%, calc((100dvh - 170px) * 1.16));
-  max-width: 900px;
-  min-width: 390px;
+  width: min(96%, calc((100dvh - 150px) * 1.18));
+  max-width: 920px;
+  min-width: 360px;
   will-change: transform;
-  transition: transform 80ms linear;
+  transition: transform 60ms linear;
   z-index: 1;
 }
 
 .map-matrix {
   width: 100%;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  grid-template-rows: 18px auto;
-  column-gap: 4px;
-  row-gap: 3px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-rows: 16px auto;
+  column-gap: 3px;
+  row-gap: 2px;
 }
 
 .axis-corner {
@@ -227,36 +286,32 @@ h3 {
   grid-row: 1;
   display: grid;
   place-items: center;
-  color: #514940;
-  font-size: 8px;
+  color: #453e37;
+  font-size: 7px;
   user-select: none;
 }
-
 .map-axis {
-  color: #756c61;
-  font-size: 9px;
+  color: #6f675e;
+  font-size: 8px;
   line-height: 1;
   user-select: none;
   pointer-events: none;
-  text-shadow: 1px 1px 0 #000;
+  text-shadow: 1px 1px #000;
 }
-
 .map-axis span { display: grid; place-items: center; }
-
 .map-axis-top {
   grid-column: 2;
   grid-row: 1;
   display: grid;
   grid-template-columns: repeat(13, minmax(0, 1fr));
-  gap: 4px;
+  gap: 2px;
 }
-
 .map-axis-left {
   grid-column: 1;
   grid-row: 2;
   display: grid;
   grid-template-rows: repeat(13, minmax(0, 1fr));
-  gap: 4px;
+  gap: 2px;
   height: 100%;
 }
 
@@ -267,131 +322,133 @@ h3 {
   width: 100%;
   aspect-ratio: 234 / 208;
 }
-
 .level-grid,
-.map-render-layer {
-  gap: 4px;
-}
-
-.interaction-grid {
+.map-render-layer,
+.map-door-layer {
+  width: 100%;
   height: 100%;
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  grid-template-rows: repeat(13, minmax(0, 1fr));
+  gap: 2px;
 }
+.map-render-layer,
+.map-door-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.map-render-layer { z-index: 1; }
+.map-door-layer { z-index: 2; }
+.interaction-grid { position: relative; z-index: 5; }
 
 .grid-cell {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
   border: 1px solid transparent;
+  border-radius: 0;
   background: transparent;
   user-select: none;
   -webkit-user-select: none;
+  cursor: crosshair;
 }
-
+.grid-cell.occupied { cursor: grab; }
 .grid-cell.empty:hover {
-  border-color: rgba(203, 195, 181, .24);
-  background: rgba(203, 195, 181, .035);
+  border-color: rgba(203, 195, 181, .22);
+  background: rgba(203, 195, 181, .025);
   box-shadow: none;
 }
-
 .show-guides .grid-cell {
   border-color: var(--isaac-grid);
-  background: rgba(120, 108, 95, .018);
+  background: rgba(120, 108, 95, .012);
 }
-
-.show-guides .grid-cell:hover {
-  border-color: rgba(220, 210, 194, .35);
-  background: rgba(220, 210, 194, .045);
-}
-
 .grid-cell.drag-preview {
-  border-color: rgba(225, 215, 196, .78) !important;
-  background: rgba(205, 194, 174, .14) !important;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.55) !important;
+  border-color: rgba(225, 215, 196, .72) !important;
+  background: rgba(205, 194, 174, .12) !important;
 }
-
 .grid-cell.drag-preview.drag-invalid {
-  border-color: rgba(177, 72, 61, .9) !important;
-  background: rgba(128, 38, 31, .18) !important;
+  border-color: rgba(171, 66, 56, .9) !important;
+  background: rgba(115, 31, 25, .20) !important;
 }
 
-/* Door stubs closer to the game's large-map look. */
-.connector {
-  z-index: 5;
-  background: #7b7873;
-  border: 2px solid #070605;
+/* Doors are their own render layer, not children of the invisible hit cells. */
+.map-door {
+  display: block;
+  align-self: center;
+  justify-self: center;
+  background: #696762;
+  border: 2px solid #050403;
   box-shadow: none;
 }
-.connector-right { width: 9px; height: 8px; right: -8px; top: calc(50% - 4px); }
-.connector-down { width: 8px; height: 9px; bottom: -8px; left: calc(50% - 4px); }
-
-/* Let the real minimap sprite carry the room appearance. */
-.map-room-visual .isaac-room-shape {
-  filter: contrast(1.12) brightness(.84);
+.map-door-right {
+  width: 10px;
+  height: 8px;
+  justify-self: end;
+  transform: translateX(7px);
 }
-.map-room-visual.unvisited { opacity: .58; }
-.map-room-visual.visited { opacity: 1; }
+.map-door-down {
+  width: 8px;
+  height: 10px;
+  align-self: end;
+  transform: translateY(7px);
+}
+
+/* Selection is state, not an extra web-style box. */
+.map-room-visual.selected::after { content: none !important; }
+.map-room-visual .isaac-room-shape,
 .map-room-visual.selected .isaac-room-shape {
-  filter: contrast(1.14) brightness(1.06);
-}
-.map-room-visual.selected::after {
-  content: '';
-  position: absolute;
-  inset: 5%;
-  z-index: 5;
-  pointer-events: none;
-  outline: 1px solid rgba(237, 230, 216, .68);
-}
-.map-room-type-icon { image-rendering: pixelated; }
-.map-room-type-icon .isaac-sprite { image-rendering: pixelated; }
-
-.map-pickup-badge {
-  min-width: 13px;
-  height: 13px;
-  padding: 0 3px;
-  border: 1px solid #080706;
-  border-radius: 0;
-  color: #090806;
-  background: #c9c7b4;
-  font-size: 8px;
+  filter: none !important;
 }
 
 .map-status {
-  flex: 0 0 24px;
+  flex: 0 0 21px;
   width: 100%;
   max-width: none;
-  min-height: 24px;
+  min-height: 21px;
   margin: 0;
-  padding: 5px 6px 0;
+  padding: 4px 5px 0;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   overflow: hidden;
-  color: #766d63;
-  font-size: 8px;
+  color: #6e665d;
+  font-size: 7px;
   white-space: nowrap;
 }
-.map-status-hint { color: #514a43; }
+.map-status-hint { color: #4d4741; }
+
+/* Inspector ------------------------------------------------------------- */
+.shape-inspector-section {
+  padding-top: 7px;
+  border-top: 1px solid #2f2720;
+}
+.field-grid { margin-bottom: 7px; }
+.room-facts { margin-top: 8px; }
 
 .footer-bar {
-  flex: 0 0 25px;
-  min-height: 25px;
-  height: 25px;
+  flex: 0 0 22px;
+  min-height: 22px;
+  height: 22px;
   overflow: hidden;
-  padding-top: 3px;
-  padding-bottom: 3px;
-  font-size: 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-size: 7px;
 }
 
-/* The page itself never scrolls; dense side panels own their scrollbars. */
 @media (max-width: 1180px) {
-  .workspace { grid-template-columns: 178px minmax(0, 1fr) 260px; }
+  .workspace { grid-template-columns: 174px minmax(0, 1fr) 260px; }
   .room-palette-grid { grid-template-columns: 1fr; }
-  .topbar { grid-template-columns: 185px minmax(300px, 1fr) auto; }
+  .topbar { grid-template-columns: 180px minmax(285px, 1fr) auto; }
   .footer-note { display: none; }
+  .room-shape-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 930px) {
-  .workspace { grid-template-columns: 155px minmax(0, 1fr) 225px; gap: 4px; padding: 4px; }
-  .panel { padding: 7px; }
-  .topbar { grid-template-columns: 155px minmax(260px, 1fr) auto; gap: 6px; }
+  .workspace { grid-template-columns: 150px minmax(0, 1fr) 220px; gap: 3px; padding: 3px; }
+  .panel { padding: 6px; }
+  .topbar { grid-template-columns: 150px minmax(250px, 1fr) auto; gap: 4px; }
   .brand span { display: none; }
-  .top-actions button { padding-left: 5px; padding-right: 5px; font-size: 8px; }
-  .map-zoom-surface { min-width: 320px; }
+  .top-actions button { padding-left: 4px; padding-right: 4px; font-size: 7px; }
+  .map-zoom-surface { min-width: 300px; }
 }
