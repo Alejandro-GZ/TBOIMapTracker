@@ -1,0 +1,31 @@
+/* Final header alignment and tracker icon treatment. */
+.top-paper-frame .topbar {
+  transform: translateY(-7px);
+}
+
+.brand-mark {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  overflow: visible;
+}
+
+.brand-mark img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@media (max-width: 930px) {
+  .top-paper-frame .topbar {
+    transform: translateY(-5px);
+  }
+}
