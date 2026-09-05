@@ -1,0 +1,359 @@
+/* Map room content ------------------------------------------------------- */
+.map-room-content-row {
+  position: absolute;
+  left: var(--room-icon-x);
+  top: var(--room-icon-y);
+  z-index: 7;
+  width: var(--room-content-width);
+  height: var(--room-content-height);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.map-room-content-row.has-room-icon {
+  justify-content: space-between;
+}
+
+.map-room-content-row .map-room-type-icon {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 58%;
+  overflow: hidden;
+}
+
+.map-room-content-row .isaac-room-type-frame {
+  min-width: 0;
+  min-height: 0;
+}
+
+.map-room-content-row .room-pickup-layer {
+  position: static !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 44%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.map-room-content-row.pickup-only .room-pickup-layer {
+  max-width: 100%;
+  justify-content: center;
+}
+
+.room-pickup-layer .room-pickup-token {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  overflow: hidden;
+}
+
+.room-pickup-layer .room-pickup-overflow {
+  flex: 0 0 auto;
+  min-width: 12px;
+  padding-right: 1px;
+  color: #efe7da;
+  font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  font-size: 7px;
+  line-height: 1;
+  text-shadow: 1px 1px #000;
+  white-space: nowrap;
+}
+
+/* Mark follows the actual silhouette instead of drawing a rectangular box. */
+.map-room-visual.marked .isaac-room-shape {
+  filter:
+    drop-shadow(1px 0 0 #f2d34a)
+    drop-shadow(-1px 0 0 #f2d34a)
+    drop-shadow(0 1px 0 #f2d34a)
+    drop-shadow(0 -1px 0 #f2d34a);
+}
+
+/* Red rooms should match the saturated crimson used by Ultra Secret rooms. */
+.map-room-visual[data-room-type='red'] .isaac-room-shape {
+  filter: sepia(.38) saturate(8.5) hue-rotate(315deg) brightness(.74) contrast(1.22) !important;
+}
+
+.isaac-room-type-red {
+  filter: sepia(.38) saturate(8.5) hue-rotate(315deg) brightness(.74) contrast(1.22) !important;
+}
+
+/* Inspector v2 ----------------------------------------------------------- */
+.inspector-panel {
+  overflow: hidden !important;
+}
+
+.room-inspector-toolbar {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 42px 30px;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 9px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(66, 48, 35, .42);
+}
+
+.inspector-type-select {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0 18px 0 3px !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: #3a281d !important;
+  background: transparent !important;
+  font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.inspector-type-select:focus-visible {
+  outline: 1px dashed rgba(72, 49, 32, .72);
+  outline-offset: 1px;
+}
+
+.inspector-shape-button,
+.inspector-delete-button,
+.popover-heading button,
+.content-add-button,
+.content-token,
+.content-picker-tabs button,
+.content-picker-option {
+  border: 0;
+  color: #3f2d20;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.inspector-shape-button {
+  height: 34px;
+  min-width: 0;
+  padding: 1px 2px;
+  display: grid;
+  grid-template-columns: 30px 8px;
+  place-items: center;
+  gap: 1px;
+}
+
+.inspector-shape-button:disabled {
+  opacity: .38;
+  cursor: default;
+}
+
+.inspector-shape-thumb {
+  width: 30px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.inspector-shape-thumb .isaac-room-shape {
+  position: static;
+  width: 30px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.inspector-delete-button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #6d281e;
+}
+
+.inspector-delete-button:hover {
+  color: #a32118;
+  transform: translateY(-1px);
+}
+
+.inspector-popover {
+  position: absolute;
+  z-index: 40;
+  top: 48px;
+  left: 8px;
+  right: 8px;
+  padding: 8px;
+  border: 2px solid rgba(64, 43, 28, .78);
+  background: #cbb79b;
+  box-shadow: 4px 5px 0 rgba(22, 11, 6, .45);
+}
+
+.popover-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #3d2a1d;
+  font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.popover-heading button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+}
+
+.shape-popover .room-shape-picker {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.shape-popover .room-shape-option {
+  min-height: 47px;
+}
+
+.mark-row {
+  width: fit-content;
+  margin: 1px 0 11px;
+  color: #483326;
+  font-weight: 700;
+}
+
+.mark-row input {
+  accent-color: #d6b72e;
+}
+
+.compact-contents-section {
+  margin-top: 0 !important;
+}
+
+.content-token-list {
+  min-height: 38px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 8px;
+}
+
+.content-token,
+.content-add-button {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(69, 48, 32, .3);
+  background: rgba(255, 247, 226, .13);
+}
+
+.content-token:hover,
+.content-add-button:hover,
+.content-picker-option:hover {
+  background: rgba(77, 48, 29, .11);
+  border-color: rgba(69, 48, 32, .58);
+}
+
+.content-token b {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  min-width: 14px;
+  padding: 1px 2px;
+  color: #eee4d2;
+  background: #3a261a;
+  font-size: 7px;
+  line-height: 9px;
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.content-add-button {
+  font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.compact-notes-field {
+  margin-top: 8px;
+}
+
+.inspector-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  background: rgba(18, 8, 4, .48);
+}
+
+.content-picker-modal {
+  width: min(290px, 96%);
+  max-height: 82%;
+  display: flex;
+  flex-direction: column;
+  padding: 9px;
+  overflow: hidden;
+  border: 2px solid #513824;
+  background: #cbb79b;
+  box-shadow: 5px 6px 0 rgba(16, 7, 3, .52);
+}
+
+.content-picker-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin-bottom: 7px;
+}
+
+.content-picker-tabs button {
+  min-height: 27px;
+  border: 1px solid rgba(69, 48, 32, .3);
+  font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  text-transform: uppercase;
+}
+
+.content-picker-tabs button.active {
+  color: #efe2c9;
+  background: #4b3526;
+}
+
+.content-picker-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.content-picker-option {
+  aspect-ratio: 1;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(69, 48, 32, .24);
+  overflow: hidden;
+}
+
+@media (max-height: 720px) {
+  .content-picker-grid { grid-template-columns: repeat(7, 1fr); }
+  .compact-notes-field textarea { min-height: 48px; }
+}
