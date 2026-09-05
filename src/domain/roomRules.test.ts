@@ -5,10 +5,24 @@ const ALL_SHAPES = [
   '1x1', 'IH', 'IV', '1x2', 'IIV', '2x1', 'IIH', '2x2', 'LTL', 'LTR', 'LBL', 'LBR',
 ];
 
-describe('vanilla room shape rules', () => {
-  it('keeps normal and other rooms unrestricted', () => {
-    expect(getAllowedRoomShapes('normal')).toEqual(ALL_SHAPES);
-    expect(getAllowedRoomShapes('other')).toEqual(ALL_SHAPES);
+describe('room shape rules', () => {
+  it('keeps flexible layout rooms unrestricted', () => {
+    for (const type of [
+      'normal',
+      'other',
+      'arcade',
+      'curse',
+      'challenge',
+      'boss-challenge',
+      'library',
+      'sacrifice',
+      'dice',
+      'planetarium',
+      'bedroom',
+    ] as const) {
+      expect(getAllowedRoomShapes(type)).toEqual(ALL_SHAPES);
+      expect(isRoomShapeAllowed(type, 'LTL')).toBe(true);
+    }
   });
 
   it('allows regular, double and 2x2 boss rooms but rejects corridor/L variants', () => {
@@ -31,15 +45,6 @@ describe('vanilla room shape rules', () => {
     'secret',
     'super-secret',
     'ultra-secret',
-    'arcade',
-    'curse',
-    'challenge',
-    'boss-challenge',
-    'library',
-    'sacrifice',
-    'dice',
-    'planetarium',
-    'bedroom',
     'devil',
     'angel',
     'error',

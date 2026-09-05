@@ -1,0 +1,26 @@
+/* Mark outline is shape-aware and must compose with coloured-room tints. */
+.map-room-visual.marked:not([data-room-type='blue']):not([data-room-type='red']) .isaac-room-shape {
+  filter:
+    drop-shadow(1px 0 0 #f2d34a)
+    drop-shadow(-1px 0 0 #f2d34a)
+    drop-shadow(0 1px 0 #f2d34a)
+    drop-shadow(0 -1px 0 #f2d34a) !important;
+}
+
+.map-room-visual.marked[data-room-type='blue'] .isaac-room-shape {
+  filter:
+    sepia(.25) saturate(4.4) hue-rotate(162deg) brightness(.92) contrast(1.08)
+    drop-shadow(1px 0 0 #f2d34a)
+    drop-shadow(-1px 0 0 #f2d34a)
+    drop-shadow(0 1px 0 #f2d34a)
+    drop-shadow(0 -1px 0 #f2d34a) !important;
+}
+
+.map-room-visual.marked[data-room-type='red'] .isaac-room-shape {
+  filter:
+    sepia(.38) saturate(8.5) hue-rotate(315deg) brightness(.74) contrast(1.22)
+    drop-shadow(1px 0 0 #f2d34a)
+    drop-shadow(-1px 0 0 #f2d34a)
+    drop-shadow(0 1px 0 #f2d34a)
+    drop-shadow(0 -1px 0 #f2d34a) !important;
+}

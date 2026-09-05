@@ -9,6 +9,8 @@ import './isaac-paper-ui.css';
 import './custom-menu-frame.css';
 import './main-only-polish.css';
 import './pixel-icons.css';
+import './inspector-v2.css';
+import './room-mark-overrides.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

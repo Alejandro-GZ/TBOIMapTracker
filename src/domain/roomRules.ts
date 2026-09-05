@@ -20,14 +20,18 @@ const BOSS_SHAPES: readonly RoomShapeId[] = ['1x1', '1x2', '2x1', '2x2'];
 const BLACK_MARKET_SHAPES: readonly RoomShapeId[] = ['2x1'];
 
 /**
- * Shape validity for the vanilla-style tracker.
+ * Tracker shape validity.
  *
- * Normal rooms are the only regular floor rooms that use the full RoomShape
- * catalogue. Named special rooms are fixed to their vanilla minimap footprint,
- * with the notable exceptions of boss rooms (regular/double/2x2 arenas) and
- * the two-rooms-wide Black Market. Blue/Red tracker rooms are both single-cell
- * coloured room variants. `other` intentionally remains unrestricted as an
- * escape hatch for unusual scripted rooms.
+ * The first implementation was deliberately conservative and forced almost
+ * every named special room to 1x1. That is too restrictive for a layout
+ * tracker: special-room data can use non-square/narrow/large layouts, and the
+ * editor should not reject those footprints just because the room has a named
+ * type. Curse Rooms, Planetariums and the other floor specials below therefore
+ * use the complete RoomShape catalogue.
+ *
+ * Types whose minimap semantics are intrinsically fixed (start/secret/off-grid
+ * transitions, coloured single rooms, etc.) remain constrained. Bosses keep
+ * their regular large arenas and Black Market remains two rooms wide.
  */
 export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]> = {
   normal: ALL_SHAPES,
@@ -39,15 +43,15 @@ export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]
   secret: SINGLE_ROOM,
   'super-secret': SINGLE_ROOM,
   'ultra-secret': SINGLE_ROOM,
-  arcade: SINGLE_ROOM,
-  curse: SINGLE_ROOM,
-  challenge: SINGLE_ROOM,
-  'boss-challenge': SINGLE_ROOM,
-  library: SINGLE_ROOM,
-  sacrifice: SINGLE_ROOM,
-  dice: SINGLE_ROOM,
-  planetarium: SINGLE_ROOM,
-  bedroom: SINGLE_ROOM,
+  arcade: ALL_SHAPES,
+  curse: ALL_SHAPES,
+  challenge: ALL_SHAPES,
+  'boss-challenge': ALL_SHAPES,
+  library: ALL_SHAPES,
+  sacrifice: ALL_SHAPES,
+  dice: ALL_SHAPES,
+  planetarium: ALL_SHAPES,
+  bedroom: ALL_SHAPES,
   devil: SINGLE_ROOM,
   angel: SINGLE_ROOM,
   'black-market': BLACK_MARKET_SHAPES,
