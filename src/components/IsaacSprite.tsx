@@ -24,9 +24,13 @@ const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   LBR: 12,
 };
 
-/** Values follow RoomType in IsaacDocs. Boss challenge uses the dedicated icon 17. */
+/** Values follow RoomType in IsaacDocs. Some tracker-only room types deliberately
+ * reuse a canonical Isaac icon and recolor it in CSS. */
 const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
+  normal: 1,
+  blue: 1,
   shop: 2,
+  'black-market': 2,
   treasure: 4,
   boss: 5,
   miniboss: 6,
@@ -44,6 +48,16 @@ const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
   dice: 21,
   planetarium: 24,
   'ultra-secret': 29,
+};
+
+const ROOM_TYPE_VARIANT_CLASS: Partial<Record<RoomTypeId, string>> = {
+  blue: 'isaac-room-type-blue',
+  'black-market': 'isaac-room-type-black-market',
+};
+
+const ROOM_TYPE_TEXT: Partial<Record<RoomTypeId, string>> = {
+  start: 'S',
+  error: 'ERR',
 };
 
 export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
@@ -95,8 +109,27 @@ export function RoomTypeSprite({
   scale?: number;
   className?: string;
 }) {
+  const text = ROOM_TYPE_TEXT[type];
+  if (text) {
+    return (
+      <span
+        className={`isaac-room-type-frame ${className ?? ''}`.trim()}
+        style={{ '--isaac-icon-scale': scale } as CSSProperties}
+      >
+        <span
+          className={`isaac-room-type-text isaac-room-type-${type}`}
+          data-isaac-room-type={type}
+          aria-hidden="true"
+        >
+          {text}
+        </span>
+      </span>
+    );
+  }
+
   const src = getCanonicalRoomTypeUrl(type);
   if (src) {
+    const variantClass = ROOM_TYPE_VARIANT_CLASS[type] ?? '';
     return (
       <span
         className={`isaac-room-type-frame ${className ?? ''}`.trim()}
@@ -104,14 +137,14 @@ export function RoomTypeSprite({
       >
         <CanonicalImage
           src={src}
-          className="isaac-room-type-image"
+          className={`isaac-room-type-image ${variantClass}`.trim()}
           dataAttribute={{ 'data-isaac-room-type': type }}
         />
       </span>
     );
   }
 
-  if (type === 'normal' || type === 'start' || !fallback) return null;
+  if (!fallback) return null;
   return (
     <span className={`isaac-sprite-fallback ${className ?? ''}`.trim()} aria-hidden="true">
       {fallback}
