@@ -17,7 +17,7 @@ import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 /**
  * Room silhouettes keep using the canonical RoomShape preview images from the
  * pinned IsaacDocs revision. Everything that sits on top of a room (room type,
- * pickups and structures) comes from the locally vendored MiniMAPI icon atlas.
+ * pickups and structures) comes from the locally vendored MiniMAPI artwork.
  */
 export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
 const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
@@ -73,6 +73,23 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
 const isMinimapIconId = (value: string): value is MinimapIconId =>
   Object.prototype.hasOwnProperty.call(MINIMAP_ICON_FRAMES, value);
 
+/**
+ * These are the exact 1:1 PNGs re-supplied by the user. Render them directly
+ * instead of sampling them back out of the combined atlas. Apart from being
+ * simpler, this removes any possibility of neighbouring atlas pixels bleeding
+ * into these tiny 7–9 px sprites when the browser scales the sheet.
+ */
+const DIRECT_MINIMAP_ICON_URLS: Partial<Record<MinimapIconId, string>> = {
+  S_BEGGAR: new URL('../assets/minimap-icons/S_BEGGAR.png', import.meta.url).href,
+  S_BLOODDONATION: new URL('../assets/minimap-icons/S_BLOODDONATION.png', import.meta.url).href,
+  S_BOMBBEGGAR: new URL('../assets/minimap-icons/S_BOMBBEGGAR.png', import.meta.url).href,
+  S_CHARGEBEGGAR: new URL('../assets/minimap-icons/S_CHARGEBEGGAR.png', import.meta.url).href,
+  S_CONFESIONARY: new URL('../assets/minimap-icons/S_CONFESIONARY.png', import.meta.url).href,
+  S_CRANE: new URL('../assets/minimap-icons/S_CRANE.png', import.meta.url).href,
+  S_DONATION: new URL('../assets/minimap-icons/S_DONATION.png', import.meta.url).href,
+  S_DRESSER: new URL('../assets/minimap-icons/S_DRESSER.png', import.meta.url).href,
+};
+
 function getTargetSize(requestedScale: number, fitSize?: number) {
   return Math.max(1, Math.round(fitSize ?? Math.max(1, requestedScale) * 12));
 }
@@ -82,13 +99,11 @@ function getIntegerScale(frame: { w: number; h: number }, targetSize: number) {
 }
 
 /**
- * Pixel-perfect atlas renderer.
+ * Pixel-perfect icon renderer.
  *
- * The old renderer scaled a whole 12×12 cell even though extracted sprites are
- * only 4–9 px wide/high. The transparent padding made small icons look missing
- * and made icon sizes inconsistent. We now keep a stable target box for layout,
- * clip the atlas to the sprite's exact x/y/w/h frame, and scale that frame by a
- * single integer factor on both axes. The source aspect ratio is never changed.
+ * Every icon is laid out inside a stable target box and scaled by one integer
+ * multiplier on both axes. The eight re-supplied structure PNGs are rendered
+ * directly from their own files; all remaining icons use exact atlas frames.
  */
 export function MinimapIconSprite({
   id,
@@ -108,6 +123,7 @@ export function MinimapIconSprite({
   const integerScale = getIntegerScale(frame, targetSize);
   const renderedWidth = frame.w * integerScale;
   const renderedHeight = frame.h * integerScale;
+  const directUrl = DIRECT_MINIMAP_ICON_URLS[id];
 
   const boxStyle: CSSProperties = {
     position: 'relative',
@@ -141,6 +157,20 @@ export function MinimapIconSprite({
     pointerEvents: 'none',
   };
 
+  const directStyle: CSSProperties = {
+    display: 'block',
+    width: renderedWidth,
+    height: renderedHeight,
+    maxWidth: 'none',
+    maxHeight: 'none',
+    objectFit: 'fill',
+    imageRendering: 'pixelated',
+    filter: 'none',
+    opacity: 1,
+    mixBlendMode: 'normal',
+    pointerEvents: 'none',
+  };
+
   return (
     <span
       className={`minimap-icon-sprite ${className}`.trim()}
@@ -151,19 +181,31 @@ export function MinimapIconSprite({
       data-pixel-scale={integerScale}
       data-render-width={renderedWidth}
       data-render-height={renderedHeight}
+      data-render-source={directUrl ? 'direct' : 'atlas'}
       aria-hidden="true"
       {...dataAttribute}
     >
-      <span className="minimap-icon-crop" style={cropStyle}>
+      {directUrl ? (
         <img
-          src={MINIMAP_ICON_ATLAS_URL}
+          src={directUrl}
           alt=""
           draggable={false}
-          className="minimap-icon-atlas-image"
-          style={atlasStyle}
+          className="minimap-icon-direct-image"
+          style={directStyle}
           aria-hidden="true"
         />
-      </span>
+      ) : (
+        <span className="minimap-icon-crop" style={cropStyle}>
+          <img
+            src={MINIMAP_ICON_ATLAS_URL}
+            alt=""
+            draggable={false}
+            className="minimap-icon-atlas-image"
+            style={atlasStyle}
+            aria-hidden="true"
+          />
+        </span>
+      )}
     </span>
   );
 }
