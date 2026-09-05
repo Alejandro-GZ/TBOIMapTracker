@@ -33,6 +33,7 @@ const createDocument = (): TrackerDocument => {
           shape: '1x1',
           type: 'start',
           visited: true,
+          marked: false,
           notes: '',
           pickups: [],
         },
@@ -59,7 +60,7 @@ interface TrackerState {
   moveRoom: (roomId: string, anchor: GridPoint) => boolean;
   setRoomShape: (roomId: string, shape: RoomShapeId) => boolean;
   setRoomType: (roomId: string, type: RoomTypeId) => boolean;
-  patchRoom: (roomId: string, patch: Partial<Pick<Room, 'visited' | 'notes'>>) => void;
+  patchRoom: (roomId: string, patch: Partial<Pick<Room, 'visited' | 'marked' | 'notes'>>) => void;
   deleteRoom: (roomId: string) => void;
   addPickup: (roomId: string, pickup: Omit<Pickup, 'id'>) => void;
   removePickup: (roomId: string, pickupId: string) => void;
@@ -113,6 +114,7 @@ export const useTrackerStore = create<TrackerState>()(
           shape,
           type: state.placementType,
           visited: false,
+          marked: false,
           notes: '',
           pickups: [],
         };
