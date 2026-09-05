@@ -3,7 +3,8 @@ import { getRoomTypeMeta } from '../domain/catalog';
 import {
   buildOccupancy,
   coordinateKey,
-  getDragRoomPlacement,
+  getDragRoomPlacementFromPath,
+  getRoomCells,
 } from '../domain/geometry';
 import { GRID_SIZE, type GridPoint } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
@@ -11,12 +12,16 @@ import { MapDoorLayer } from './MapDoorLayer';
 import { MapRoomVisual } from './MapRoomVisual';
 
 interface DragSelection {
-  start: GridPoint;
-  end: GridPoint;
+  path: GridPoint[];
 }
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
+
+const appendPathPoint = (path: GridPoint[], point: GridPoint) =>
+  path.some((candidate) => candidate.x === point.x && candidate.y === point.y)
+    ? path
+    : [...path, point];
 
 export function MapGrid() {
   const document = useTrackerStore((state) => state.document);
@@ -26,7 +31,7 @@ export function MapGrid() {
   const addRoom = useTrackerStore((state) => state.addRoom);
   const moveRoom = useTrackerStore((state) => state.moveRoom);
   const selectRoom = useTrackerStore((state) => state.selectRoom);
-  const [notice, setNotice] = useState('Click for 1×1. Drag across cells for larger rooms.');
+  const [notice, setNotice] = useState('Click for 1×1. Drag through cells to draw a room footprint.');
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
@@ -38,18 +43,14 @@ export function MapGrid() {
   const dragPreview = useMemo(() => {
     if (!dragSelection) return null;
 
-    const minX = Math.min(dragSelection.start.x, dragSelection.end.x);
-    const maxX = Math.max(dragSelection.start.x, dragSelection.end.x);
-    const minY = Math.min(dragSelection.start.y, dragSelection.end.y);
-    const maxY = Math.max(dragSelection.start.y, dragSelection.end.y);
-    const keys = new Set<string>();
-
-    for (let y = minY; y <= maxY; y += 1) {
-      for (let x = minX; x <= maxX; x += 1) keys.add(coordinateKey({ x, y }));
-    }
-
-    const placement = getDragRoomPlacement(dragSelection.start, dragSelection.end);
-    const blocked = [...keys].some((key) => occupancy.has(key));
+    const placement = getDragRoomPlacementFromPath(dragSelection.path);
+    const previewCells = placement
+      ? getRoomCells({ anchor: placement.anchor, shape: placement.shape })
+      : dragSelection.path;
+    const keys = new Set(previewCells.map(coordinateKey));
+    const blocked = placement
+      ? previewCells.some((point) => occupancy.has(coordinateKey(point)))
+      : dragSelection.path.some((point) => occupancy.has(coordinateKey(point)));
 
     return {
       keys,
@@ -92,11 +93,12 @@ export function MapGrid() {
   const finishRoomGesture = (point: GridPoint) => {
     if (!dragSelection) return;
 
-    const placement = getDragRoomPlacement(dragSelection.start, point);
+    const path = appendPathPoint(dragSelection.path, point);
+    const placement = getDragRoomPlacementFromPath(path);
     setDragSelection(null);
 
     if (!placement) {
-      setNotice('Isaac rooms created by drag are at most 2×2 cells.');
+      setNotice('Draw 1–4 cells inside a 2×2 footprint. Three cells create the matching L room.');
       return;
     }
 
@@ -143,11 +145,13 @@ export function MapGrid() {
               return;
             }
             event.preventDefault();
-            setDragSelection({ start: point, end: point });
+            setDragSelection({ path: [point] });
           }}
           onPointerEnter={(event) => {
             if (!dragSelection || (event.buttons & 1) === 0) return;
-            setDragSelection((current) => current ? { ...current, end: point } : current);
+            setDragSelection((current) => current
+              ? { path: appendPathPoint(current.path, point) }
+              : current);
           }}
           onPointerUp={(event) => {
             if (!dragSelection || event.button !== 0) return;
@@ -227,7 +231,7 @@ export function MapGrid() {
 
       <div className="map-status" role="status">
         <span>{notice}</span>
-        <span className="map-status-hint">Wheel: zoom · Click: 1×1 · Drag: 1×2 / 2×1 / 2×2</span>
+        <span className="map-status-hint">Wheel: zoom · Click: 1×1 · Drag path: 1×2 / 2×1 / 2×2 / L</span>
       </div>
     </section>
   );
