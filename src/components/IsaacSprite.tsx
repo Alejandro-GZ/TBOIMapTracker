@@ -1,47 +1,135 @@
 import type { CSSProperties } from 'react';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 
+/**
+ * Room shapes and room-type icons come from the same preview assets used by
+ * IsaacDocs. Pinning the docs revision keeps the map deterministic while still
+ * avoiding redistribution of the PNGs in this repository.
+ */
+export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
+const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
+
+const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
+  '1x1': 1,
+  IH: 2,
+  IV: 3,
+  '1x2': 4,
+  IIV: 5,
+  '2x1': 6,
+  IIH: 7,
+  '2x2': 8,
+  LTL: 9,
+  LTR: 10,
+  LBL: 11,
+  LBR: 12,
+};
+
+/** Values follow RoomType in IsaacDocs. Boss challenge uses the dedicated icon 17. */
+const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
+  shop: 2,
+  treasure: 4,
+  boss: 5,
+  miniboss: 6,
+  secret: 7,
+  'super-secret': 8,
+  arcade: 9,
+  curse: 10,
+  challenge: 11,
+  library: 12,
+  sacrifice: 13,
+  devil: 14,
+  angel: 15,
+  'boss-challenge': 17,
+  bedroom: 18,
+  dice: 21,
+  planetarium: 24,
+  'ultra-secret': 29,
+};
+
+export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
+  `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
+
+export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
+  const value = ROOM_TYPE_VALUES[type];
+  return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
+};
+
+interface CanonicalImageProps {
+  src: string;
+  className?: string;
+  dataAttribute?: Record<string, string>;
+}
+
+function CanonicalImage({ src, className = '', dataAttribute = {} }: CanonicalImageProps) {
+  return (
+    <img
+      src={src}
+      alt=""
+      draggable={false}
+      className={`isaac-canonical-image ${className}`.trim()}
+      style={{ imageRendering: 'pixelated' }}
+      aria-hidden="true"
+      {...dataAttribute}
+    />
+  );
+}
+
+export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId; className?: string }) {
+  return (
+    <CanonicalImage
+      src={getCanonicalRoomShapeUrl(shape)}
+      className={`isaac-room-shape isaac-room-shape-${shape} ${className}`.trim()}
+      dataAttribute={{ 'data-isaac-shape': shape }}
+    />
+  );
+}
+
+export function RoomTypeSprite({
+  type,
+  fallback,
+  scale = 1,
+  className,
+}: {
+  type: RoomTypeId;
+  fallback?: string;
+  scale?: number;
+  className?: string;
+}) {
+  const src = getCanonicalRoomTypeUrl(type);
+  if (src) {
+    return (
+      <span
+        className={`isaac-room-type-frame ${className ?? ''}`.trim()}
+        style={{ '--isaac-icon-scale': scale } as CSSProperties}
+      >
+        <CanonicalImage
+          src={src}
+          className="isaac-room-type-image"
+          dataAttribute={{ 'data-isaac-room-type': type }}
+        />
+      </span>
+    );
+  }
+
+  if (type === 'normal' || type === 'start' || !fallback) return null;
+  return (
+    <span className={`isaac-sprite-fallback ${className ?? ''}`.trim()} aria-hidden="true">
+      {fallback}
+    </span>
+  );
+}
+
+/* Pickups are not covered by the RoomShape/RoomType docs tables. Keep them on
+ * a separate secondary skin so canonical room rendering is never coupled to
+ * MiniMAPI. */
 const MINIMAP_API_REVISION = 'ca7ecb5a256887963129fa6314e8babb6a3d3cb6';
 const MINIMAP_API_RAW = `https://raw.githubusercontent.com/TazTxUK/MinimapAPI/${MINIMAP_API_REVISION}/resources/gfx/ui/minimapapi`;
-
-/**
- * MiniMAPI assets are pinned to a known upstream commit so visual changes
- * upstream cannot silently alter this app. They are loaded at runtime rather
- * than redistributed in this repository.
- */
-export const MINIMAP_ICON_SHEET = `${MINIMAP_API_RAW}/minimapapi_icons.png`;
-export const MINIMAP_ROOM_SHEET = `${MINIMAP_API_RAW}/custom_minimap2.png`;
-
+const MINIMAP_PICKUP_SHEET = `${MINIMAP_API_RAW}/minimapapi_icons.png`;
 const ICON_SHEET_WIDTH = 128;
 const ICON_SHEET_HEIGHT = 160;
-const ROOM_SHEET_WIDTH = 144;
-const ROOM_SHEET_HEIGHT = 64;
+const ICON_FRAME_SIZE = 16;
 
-type SpriteFrame = Readonly<{ x: number; y: number; width: number; height: number }>;
 type IconFrame = Readonly<{ x: number; y: number }>;
-
-const iconFrame = (x: number, y: number): SpriteFrame => ({ x, y, width: 16, height: 16 });
-
-const ROOM_FRAMES: Partial<Record<RoomTypeId, IconFrame>> = {
-  shop: { x: 0, y: 0 },
-  secret: { x: 16, y: 0 },
-  'super-secret': { x: 32, y: 0 },
-  library: { x: 48, y: 0 },
-  treasure: { x: 64, y: 0 },
-  angel: { x: 80, y: 0 },
-  devil: { x: 96, y: 0 },
-  dice: { x: 112, y: 0 },
-  miniboss: { x: 0, y: 16 },
-  boss: { x: 16, y: 16 },
-  challenge: { x: 32, y: 16 },
-  'boss-challenge': { x: 48, y: 16 },
-  curse: { x: 64, y: 16 },
-  sacrifice: { x: 80, y: 16 },
-  arcade: { x: 96, y: 16 },
-  bedroom: { x: 0, y: 32 },
-  planetarium: { x: 64, y: 32 },
-  'ultra-secret': { x: 112, y: 32 },
-};
 
 const PICKUP_FRAMES: Partial<Record<PickupKind, IconFrame>> = {
   heart: { x: 64, y: 48 },
@@ -57,156 +145,32 @@ const PICKUP_FRAMES: Partial<Record<PickupKind, IconFrame>> = {
   chest: { x: 80, y: 80 },
 };
 
-/** Frame order follows Isaac's RoomShape enum, as described by custom_minimap2.anm2. */
-const ROOM_SHAPE_FRAMES: Record<RoomShapeId, SpriteFrame> = {
-  '1x1': { x: 0, y: 48, width: 18, height: 16 },
-  IH: { x: 18, y: 48, width: 18, height: 16 },
-  IV: { x: 36, y: 48, width: 18, height: 16 },
-  '1x2': { x: 0, y: 0, width: 18, height: 32 },
-  IIV: { x: 18, y: 0, width: 18, height: 32 },
-  '2x1': { x: 0, y: 32, width: 36, height: 16 },
-  IIH: { x: 36, y: 32, width: 36, height: 16 },
-  '2x2': { x: 36, y: 0, width: 36, height: 32 },
-  LTL: { x: 72, y: 0, width: 36, height: 32 },
-  LTR: { x: 108, y: 0, width: 36, height: 32 },
-  LBL: { x: 72, y: 32, width: 36, height: 32 },
-  LBR: { x: 108, y: 32, width: 36, height: 32 },
-};
-
-interface SpriteSheetFrameProps {
-  sheet: string;
-  sheetWidth: number;
-  sheetHeight: number;
-  frame: SpriteFrame;
-  scale?: number;
-  className?: string;
-}
-
-/**
- * Render one sprite frame using an SVG viewport local to the frame.
- *
- * Moving the sheet by -frame.x/-frame.y and clipping to a 0-based viewBox is
- * intentionally different from using a shifted viewBox over the whole sheet:
- * it guarantees pixels outside the selected frame can never bleed into the UI.
- */
-function SpriteSheetFrame({
-  sheet,
-  sheetWidth,
-  sheetHeight,
-  frame,
-  scale = 1,
-  className = '',
-}: SpriteSheetFrameProps) {
-  return (
-    <svg
-      className={`isaac-sprite ${className}`.trim()}
-      width={frame.width * scale}
-      height={frame.height * scale}
-      viewBox={`0 0 ${frame.width} ${frame.height}`}
-      preserveAspectRatio="none"
-      overflow="hidden"
-      shapeRendering="crispEdges"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <image
-        href={sheet}
-        x={-frame.x}
-        y={-frame.y}
-        width={sheetWidth}
-        height={sheetHeight}
-        preserveAspectRatio="none"
-        style={{ imageRendering: 'pixelated' } as CSSProperties}
-      />
-    </svg>
-  );
-}
-
-interface IsaacSpriteProps {
-  frame?: IconFrame;
-  fallback?: string;
-  scale?: number;
-  className?: string;
-}
-
-export function IsaacSprite({ frame, fallback = '', scale = 1, className = '' }: IsaacSpriteProps) {
-  if (!frame) {
-    if (!fallback) return null;
-    return (
-      <span
-        className={`isaac-sprite-fallback ${className}`.trim()}
-        style={{ width: 16 * scale, height: 16 * scale }}
-        aria-hidden="true"
-      >
-        {fallback}
-      </span>
-    );
-  }
-
-  return (
-    <SpriteSheetFrame
-      sheet={MINIMAP_ICON_SHEET}
-      sheetWidth={ICON_SHEET_WIDTH}
-      sheetHeight={ICON_SHEET_HEIGHT}
-      frame={iconFrame(frame.x, frame.y)}
-      scale={scale}
-      className={className}
-    />
-  );
-}
-
-export function RoomShapeSprite({ shape }: { shape: RoomShapeId }) {
-  return (
-    <SpriteSheetFrame
-      sheet={MINIMAP_ROOM_SHEET}
-      sheetWidth={ROOM_SHEET_WIDTH}
-      sheetHeight={ROOM_SHEET_HEIGHT}
-      frame={ROOM_SHAPE_FRAMES[shape]}
-      className={`isaac-room-shape isaac-room-shape-${shape}`}
-    />
-  );
-}
-
-export function RoomTypeSprite({
-  type,
-  fallback,
-  scale,
-  className,
-}: {
-  type: RoomTypeId;
-  fallback?: string;
-  scale?: number;
-  className?: string;
-}) {
-  // Vanilla normal/start rooms do not need an extra glyph in the minimap.
-  const effectiveFallback = type === 'normal' || type === 'start' ? '' : fallback;
-  return (
-    <IsaacSprite
-      frame={ROOM_FRAMES[type]}
-      fallback={effectiveFallback}
-      scale={scale}
-      className={className}
-    />
-  );
-}
-
 export function PickupSprite({
   kind,
   fallback,
-  scale,
-  className,
+  scale = 1,
+  className = '',
 }: {
   kind: PickupKind;
   fallback?: string;
   scale?: number;
   className?: string;
 }) {
-  return (
-    <IsaacSprite
-      frame={PICKUP_FRAMES[kind]}
-      fallback={fallback}
-      scale={scale}
-      className={className}
-    />
-  );
+  const frame = PICKUP_FRAMES[kind];
+  if (!frame) {
+    if (!fallback) return null;
+    return <span className={`isaac-sprite-fallback ${className}`.trim()} aria-hidden="true">{fallback}</span>;
+  }
+
+  const style: CSSProperties = {
+    width: ICON_FRAME_SIZE * scale,
+    height: ICON_FRAME_SIZE * scale,
+    backgroundImage: `url("${MINIMAP_PICKUP_SHEET}")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: `${ICON_SHEET_WIDTH * scale}px ${ICON_SHEET_HEIGHT * scale}px`,
+    backgroundPosition: `${-frame.x * scale}px ${-frame.y * scale}px`,
+    imageRendering: 'pixelated',
+  };
+
+  return <span className={`isaac-sprite pickup-sprite ${className}`.trim()} style={style} aria-hidden="true" />;
 }
