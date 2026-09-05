@@ -131,7 +131,10 @@ test('dragging cells creates rectangular and L Isaac footprints', async ({ page 
   await dragCells(page, [10, 1], [10, 2]);
   await expect(page.locator('[data-room-shape="1x2"]')).toHaveCount(1);
 
-  await dragPath(page, [[1, 10], [2, 10], [2, 11], [1, 11]]);
+  // The representative-floor test above already exercises a four-cell 2x2
+  // path. Here use the supported corner-to-corner gesture so this assertion
+  // covers the alternate UX without duplicating a timing-sensitive loop.
+  await dragCells(page, [1, 10], [2, 11]);
   await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
 
   await dragPath(page, [[8, 9], [9, 9], [9, 10]]);
