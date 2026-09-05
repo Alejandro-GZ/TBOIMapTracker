@@ -11,7 +11,8 @@
   isolation: isolate;
 }
 
-.minimap-icon-atlas-image {
+.minimap-icon-atlas-image,
+.minimap-icon-direct-image {
   display: block;
   max-width: none !important;
   max-height: none !important;
