@@ -79,7 +79,10 @@ export interface Room {
   anchor: GridPoint;
   shape: RoomShapeId;
   type: RoomTypeId;
+  /** Legacy v1 field kept for import compatibility. */
   visited: boolean;
+  /** User-controlled highlight. Optional so old v1 saves keep loading. */
+  marked?: boolean;
   notes: string;
   pickups: Pickup[];
 }
