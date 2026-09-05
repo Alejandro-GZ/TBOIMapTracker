@@ -89,7 +89,11 @@ export function MapGrid() {
 
       <div className="grid-frame">
         <div className={`map-grid-stack ${showIndices ? 'show-guides' : ''}`}>
-          <div className="map-render-layer" aria-hidden="true">
+          <div
+            className="map-render-layer"
+            style={{ gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)` }}
+            aria-hidden="true"
+          >
             {rooms.map((room) => (
               <MapRoomVisual key={room.id} room={room} selected={room.id === selectedRoomId} />
             ))}
