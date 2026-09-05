@@ -8,6 +8,8 @@ import { useTrackerStore } from './store/useTrackerStore';
 const safeFilename = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tboi-map';
 
+const APP_ICON_URL = '/TBOIMapTracker/app-icon.png';
+
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const document = useTrackerStore((state) => state.document);
@@ -42,7 +44,7 @@ export default function App() {
         <header className="topbar">
           <div className="brand">
             <div className="brand-mark" aria-hidden="true">
-              <img src={`${import.meta.env.BASE_URL}app-icon.png`} alt="" draggable={false} />
+              <img src={APP_ICON_URL} alt="" draggable={false} />
             </div>
             <div>
               <strong>TBOI MAP TRACKER</strong>
