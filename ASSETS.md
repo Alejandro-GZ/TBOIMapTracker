@@ -15,15 +15,31 @@ They cover `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2`, `LTL`, `LTR`, `
 
 ## Room, pickup and structure icons — MiniMAPI
 
-The app now uses a local atlas generated from the 1:1 PNGs supplied for this project. Those PNGs were extracted from MiniMAPI's icon sheet:
+The app uses the 1:1 PNGs supplied for this project. Those PNGs were extracted from MiniMAPI's icon sheet:
 
 - Upstream: https://github.com/TazTxUK/MinimapAPI
 - Pinned upstream revision: `ca7ecb5a256887963129fa6314e8babb6a3d3cb6`
 - Original sheet: `resources/gfx/ui/minimapapi/minimapapi_icons.png`
 - Vendored atlas: `src/assets/minimap-icons.png`
 - Atlas metadata/mappings: `src/domain/minimapIcons.ts`
+- Runtime renderer: `src/components/IsaacSprite.tsx`
 
 The local atlas is `120×108` and stores each source icon unmodified inside a `12×12` cell. Runtime rendering only uses **integer scaling** with `image-rendering: pixelated`; icons are never stretched independently on X/Y, blurred, or resampled to a different aspect ratio.
+
+To avoid any possible atlas-edge sampling on the tiniest structure sprites, the following re-supplied source PNGs are also vendored individually and rendered directly:
+
+```text
+src/assets/minimap-icons/S_BEGGAR.png
+src/assets/minimap-icons/S_BLOODDONATION.png
+src/assets/minimap-icons/S_BOMBBEGGAR.png
+src/assets/minimap-icons/S_CHARGEBEGGAR.png
+src/assets/minimap-icons/S_CONFESIONARY.png
+src/assets/minimap-icons/S_CRANE.png
+src/assets/minimap-icons/S_DONATION.png
+src/assets/minimap-icons/S_DRESSER.png
+```
+
+These direct files are still scaled only by integer nearest-neighbour factors. No runtime tint, hue rotation, opacity change or blend mode is applied to them.
 
 Runtime room mappings include Normal/Start, Shop, Treasure, Boss/Miniboss, Secret/Super Secret/Ultra Secret, Arcade, Curse, Challenge/Boss Challenge, Library, Sacrifice, Dice, Planetarium, Bedroom, Devil/Angel and I AM ERROR. Blue and Red rooms reuse `R_NORMAL` with the existing colour treatment; Black Market reuses `R_SHOP` with its dark red/black treatment.
 
