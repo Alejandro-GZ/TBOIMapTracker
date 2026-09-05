@@ -1,10 +1,12 @@
 import type { CSSProperties } from 'react';
+import roomDefaultIcon from '../assets/room-default.png';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 
 /**
  * Room shapes and room-type icons come from the same preview assets used by
  * IsaacDocs. Pinning the docs revision keeps the map deterministic while still
- * avoiding redistribution of the PNGs in this repository.
+ * avoiding redistribution of most PNGs in this repository. ROOM_DEFAULT is
+ * vendored locally because that preview is not present in the pinned raw docs tree.
  */
 export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
 const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
@@ -27,8 +29,6 @@ const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
 /** Values follow RoomType in IsaacDocs. Some tracker-only room types deliberately
  * reuse a canonical Isaac icon and recolor it in CSS. */
 const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
-  normal: 1,
-  blue: 1,
   shop: 2,
   'black-market': 2,
   treasure: 4,
@@ -64,6 +64,7 @@ export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
   `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
 
 export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
+  if (type === 'normal' || type === 'blue') return roomDefaultIcon;
   const value = ROOM_TYPE_VALUES[type];
   return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
 };
