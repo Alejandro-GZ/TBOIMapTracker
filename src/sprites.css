@@ -168,8 +168,30 @@
   height: 28px;
 }
 
+/* Exact marker names are much longer than the old PickupKind labels. Give the
+ * selector a whole row and keep label/quantity/add on a compact second row. */
+.exact-marker-form {
+  grid-template-columns: minmax(0, 1fr) 52px 42px !important;
+}
+
 .exact-marker-form select:first-child {
+  grid-column: 1 / -1;
+  width: 100%;
   min-width: 0;
+}
+
+.exact-marker-form input[aria-label='Marker name'] {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.exact-marker-form input[aria-label='Quantity'] {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.exact-marker-form .primary-button {
+  grid-column: 3;
 }
 
 /* Canonical RoomShape previews in the inspector. */
