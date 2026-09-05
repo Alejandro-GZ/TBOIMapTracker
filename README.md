@@ -28,6 +28,7 @@ References used for the level model:
 
 - 13 × 13 room editor.
 - Click-to-place rooms using a room-type palette.
+- Isaac-style minimap sprites for supported special room types and pickups.
 - Drag rooms to reposition them.
 - Arrow nudges in the inspector for precise movement.
 - Real multi-cell room footprints and L rooms.
@@ -88,9 +89,13 @@ The tracker uses a top-left **tracker anchor** for its shape geometry. For some 
 
 ## Minimap sprites / game assets
 
-No copyrighted Isaac sprites are committed to this repository. The UI uses its own lightweight symbols and is deliberately data-driven so a sprite skin can be layered on later.
+The UI has a sprite adapter in `src/components/IsaacSprite.tsx`. It renders 16×16 frames from MiniMAPI's extended minimap icon sheet for supported room types and pickups, while preserving lightweight text-symbol fallbacks for types without a reliable frame.
 
-For an exact personal-game skin, extract your own Repentance+ resources with the game's `ResourceExtractor` and map them locally. This keeps the project distributable while allowing a faithful appearance for users who own the game.
+The upstream sprite sheet is pinned to a specific MiniMAPI revision and loaded at runtime; the PNG itself is **not committed to this repository**. That keeps the editor logic independent from the art layer and prevents an upstream update from silently changing the UI.
+
+See [`ASSETS.md`](./ASSETS.md) for the exact revision, source paths, attribution and replacement instructions.
+
+Users who want a fully self-contained/offline skin can extract their own Repentance+ resources with the game's `ResourceExtractor` and point the adapter at their local copy.
 
 ## GitHub Pages
 
@@ -100,7 +105,7 @@ If Pages has never been enabled for the repository, enable **Settings → Pages 
 
 ## Roadmap
 
-- Sprite-skin adapter for user-extracted Repentance+ minimap assets.
+- Optional self-contained skin using user-extracted Repentance+ resources.
 - Multiple floors grouped into a complete run.
 - Undo / redo and keyboard room-type shortcuts.
 - Optional secret-room candidate helpers (clearly marked as heuristics, not guarantees).
