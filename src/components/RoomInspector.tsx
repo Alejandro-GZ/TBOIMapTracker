@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PICKUP_META, ROOM_TYPES, getRoomTypeMeta } from '../domain/catalog';
-import { countUniqueAdjacencies, gridIndex } from '../domain/geometry';
+import { getAllowedRoomShapes } from '../domain/roomRules';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { PickupSprite, RoomTypeSprite } from './IsaacSprite';
@@ -13,6 +13,7 @@ export function RoomInspector() {
   const activeDimension = useTrackerStore((state) => state.activeDimension);
   const selectedRoomId = useTrackerStore((state) => state.selectedRoomId);
   const patchRoom = useTrackerStore((state) => state.patchRoom);
+  const setRoomType = useTrackerStore((state) => state.setRoomType);
   const setRoomShape = useTrackerStore((state) => state.setRoomShape);
   const moveRoom = useTrackerStore((state) => state.moveRoom);
   const deleteRoom = useTrackerStore((state) => state.deleteRoom);
@@ -32,23 +33,29 @@ export function RoomInspector() {
       <aside className="panel inspector-panel empty-inspector">
         <span className="eyebrow">Room inspector</span>
         <h2>No room selected</h2>
-        <p>Select a room to change its type and shape, add notes, or record pickups you left behind.</p>
         <div className="inspector-empty-diagram">⌂ — · — ★</div>
       </aside>
     );
   }
 
   const meta = getRoomTypeMeta(room.type);
-  const adjacencyCount = countUniqueAdjacencies(room, rooms);
+  const allowedShapes = getAllowedRoomShapes(room.type);
+  const currentShapeIsValid = allowedShapes.includes(room.shape);
+  const showShapePicker = allowedShapes.length > 1 || !currentShapeIsValid;
 
   const nudge = (dx: number, dy: number) => {
     const moved = moveRoom(room.id, { x: room.anchor.x + dx, y: room.anchor.y + dy });
-    setGeometryError(moved ? '' : 'Move blocked by the grid edge or another room.');
+    setGeometryError(moved ? '' : 'Move blocked.');
+  };
+
+  const handleType = (type: RoomTypeId) => {
+    const changed = setRoomType(room.id, type);
+    setGeometryError(changed ? '' : 'The required room shape does not fit here.');
   };
 
   const handleShape = (shape: RoomShapeId) => {
     const changed = setRoomShape(room.id, shape);
-    setGeometryError(changed ? '' : 'That shape would overlap another room or leave the grid.');
+    setGeometryError(changed ? '' : 'That shape does not fit here.');
   };
 
   const submitPickup = () => {
@@ -70,21 +77,14 @@ export function RoomInspector() {
             {meta.label}
           </h2>
         </div>
-        <span className="grid-index-pill">#{gridIndex(room.anchor)}</span>
       </div>
-
-      {meta.offGrid && (
-        <div className="warning-card">
-          This room is off-grid internally in Isaac. Its position here is a visual minimap placement.
-        </div>
-      )}
 
       <div className="field-grid">
         <label>
           <span>Type</span>
           <select
             value={room.type}
-            onChange={(event) => patchRoom(room.id, { type: event.target.value as RoomTypeId })}
+            onChange={(event) => handleType(event.target.value as RoomTypeId)}
             data-testid="room-type-select"
           >
             {ROOM_TYPES.map((roomType) => <option key={roomType.id} value={roomType.id}>{roomType.label}</option>)}
@@ -92,18 +92,14 @@ export function RoomInspector() {
         </label>
       </div>
 
-      <section className="inspector-section shape-inspector-section">
-        <div className="section-title-row">
-          <h3>Room shape</h3>
-          <span>{room.shape}</span>
-        </div>
-        <RoomShapePicker value={room.shape} onChange={handleShape} />
-      </section>
-
-      <div className="room-facts">
-        <span>Anchor ({room.anchor.x}, {room.anchor.y})</span>
-        <span>{adjacencyCount} adjacent room{adjacencyCount === 1 ? '' : 's'}</span>
-      </div>
+      {showShapePicker && (
+        <section className="inspector-section shape-inspector-section">
+          <div className="section-title-row">
+            <h3>Room shape</h3>
+          </div>
+          <RoomShapePicker value={room.shape} onChange={handleShape} allowedShapes={allowedShapes} />
+        </section>
+      )}
 
       <div className="nudge-row" aria-label="Move room one grid cell">
         <span>Move</span>
