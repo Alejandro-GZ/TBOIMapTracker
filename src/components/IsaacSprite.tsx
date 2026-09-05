@@ -1,18 +1,16 @@
 import type { CSSProperties } from 'react';
 import {
   DEFAULT_PICKUP_ICON_BY_KIND,
-  getMinimapIconIndex,
-  MINIMAP_ICON_ATLAS_COLUMNS,
-  MINIMAP_ICON_ATLAS_HEIGHT,
   MINIMAP_ICON_ATLAS_URL,
-  MINIMAP_ICON_ATLAS_WIDTH,
-  MINIMAP_ICON_CELL,
-  MINIMAP_ICON_ORDER,
   ROOM_ICON_BY_TYPE,
   ROOM_ICON_VARIANT_CLASS,
   TRACKABLE_MARKER_BY_ID,
   type MinimapIconId,
 } from '../domain/minimapIcons';
+import {
+  getMinimapIconFrame,
+  MINIMAP_ICON_ATLAS_SIZE,
+} from '../domain/minimapIconFrames';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 
 /**
@@ -72,42 +70,82 @@ export function RoomShapeSprite({ shape, className = '' }: { shape: RoomShapeId;
 }
 
 const isMinimapIconId = (value: string): value is MinimapIconId =>
-  MINIMAP_ICON_ORDER.includes(value as MinimapIconId);
+  value.startsWith('P_') || value.startsWith('R_') || value.startsWith('S_');
 
+function getIntegerScale(frame: { w: number; h: number }, requestedScale: number, fitSize?: number) {
+  if (fitSize !== undefined) {
+    return Math.max(1, Math.floor(fitSize / Math.max(frame.w, frame.h)));
+  }
+  return Math.max(1, Math.round(requestedScale));
+}
+
+/**
+ * Pixel-perfect atlas renderer.
+ *
+ * The previous implementation rendered and scaled the whole 12×12 atlas cell.
+ * The extracted sprites are only 4–9 px wide/high, so transparent padding made
+ * small icons appear inconsistently tiny. We now clip to each sprite's exact
+ * x/y/w/h bounds, then apply one integer scale to both axes. No distortion and
+ * no interpolation are introduced by the icon renderer itself.
+ */
 export function MinimapIconSprite({
   id,
   scale = 2,
+  fitSize,
   className = '',
   dataAttribute = {},
 }: {
   id: MinimapIconId;
   scale?: number;
+  fitSize?: number;
   className?: string;
   dataAttribute?: Record<string, string>;
 }) {
-  const integerScale = Math.max(1, Math.round(scale));
-  const index = getMinimapIconIndex(id);
-  const x = (index % MINIMAP_ICON_ATLAS_COLUMNS) * MINIMAP_ICON_CELL;
-  const y = Math.floor(index / MINIMAP_ICON_ATLAS_COLUMNS) * MINIMAP_ICON_CELL;
+  const frame = getMinimapIconFrame(id);
+  const integerScale = getIntegerScale(frame, scale, fitSize);
+  const width = frame.w * integerScale;
+  const height = frame.h * integerScale;
 
-  const style: CSSProperties = {
-    width: MINIMAP_ICON_CELL * integerScale,
-    height: MINIMAP_ICON_CELL * integerScale,
-    backgroundImage: `url("${MINIMAP_ICON_ATLAS_URL}")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: `${MINIMAP_ICON_ATLAS_WIDTH * integerScale}px ${MINIMAP_ICON_ATLAS_HEIGHT * integerScale}px`,
-    backgroundPosition: `${-x * integerScale}px ${-y * integerScale}px`,
+  const frameStyle: CSSProperties = {
+    position: 'relative',
+    width,
+    height,
+    overflow: 'hidden',
     imageRendering: 'pixelated',
+  };
+
+  const atlasStyle: CSSProperties = {
+    position: 'absolute',
+    left: -frame.x * integerScale,
+    top: -frame.y * integerScale,
+    width: MINIMAP_ICON_ATLAS_SIZE.width * integerScale,
+    height: MINIMAP_ICON_ATLAS_SIZE.height * integerScale,
+    maxWidth: 'none',
+    maxHeight: 'none',
+    imageRendering: 'pixelated',
+    pointerEvents: 'none',
   };
 
   return (
     <span
       className={`minimap-icon-sprite ${className}`.trim()}
-      style={style}
+      style={frameStyle}
       data-icon-id={id}
+      data-source-width={frame.w}
+      data-source-height={frame.h}
+      data-pixel-scale={integerScale}
       aria-hidden="true"
       {...dataAttribute}
-    />
+    >
+      <img
+        src={MINIMAP_ICON_ATLAS_URL}
+        alt=""
+        draggable={false}
+        className="minimap-icon-atlas-image"
+        style={atlasStyle}
+        aria-hidden="true"
+      />
+    </span>
   );
 }
 
@@ -115,11 +153,13 @@ export function RoomTypeSprite({
   type,
   fallback,
   scale = 2,
+  fitSize,
   className,
 }: {
   type: RoomTypeId;
   fallback?: string;
   scale?: number;
+  fitSize?: number;
   className?: string;
 }) {
   const iconId = ROOM_ICON_BY_TYPE[type];
@@ -129,6 +169,7 @@ export function RoomTypeSprite({
         <MinimapIconSprite
           id={iconId}
           scale={scale}
+          fitSize={fitSize}
           className={`isaac-room-type-image ${ROOM_ICON_VARIANT_CLASS[type] ?? ''}`.trim()}
           dataAttribute={{ 'data-isaac-room-type': type }}
         />
@@ -145,6 +186,7 @@ export function PickupSprite({
   iconId,
   fallback,
   scale = 2,
+  fitSize,
   className = '',
   map = false,
 }: {
@@ -152,6 +194,7 @@ export function PickupSprite({
   iconId?: string;
   fallback?: string;
   scale?: number;
+  fitSize?: number;
   className?: string;
   map?: boolean;
 }) {
@@ -168,6 +211,7 @@ export function PickupSprite({
     <MinimapIconSprite
       id={resolved}
       scale={scale}
+      fitSize={fitSize}
       className={`pickup-sprite ${className}`.trim()}
       dataAttribute={{ 'data-minimap-marker': resolved }}
     />
