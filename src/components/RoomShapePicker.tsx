@@ -5,13 +5,19 @@ import { RoomShapeSprite } from './IsaacSprite';
 export function RoomShapePicker({
   value,
   onChange,
+  allowedShapes,
 }: {
   value: RoomShapeId;
   onChange: (shape: RoomShapeId) => void;
+  allowedShapes?: readonly RoomShapeId[];
 }) {
+  const options = allowedShapes
+    ? ROOM_SHAPES.filter((shape) => allowedShapes.includes(shape.id))
+    : ROOM_SHAPES;
+
   return (
     <div className="room-shape-picker" role="group" aria-label="Room shape">
-      {ROOM_SHAPES.map((shape) => (
+      {options.map((shape) => (
         <button
           type="button"
           key={shape.id}
