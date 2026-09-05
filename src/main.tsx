@@ -5,6 +5,7 @@ import './styles.css';
 import './sprites.css';
 import './isaac-viewport.css';
 import './visual-tuning.css';
+import './isaac-paper-ui.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

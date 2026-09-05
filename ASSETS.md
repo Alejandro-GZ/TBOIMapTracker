@@ -1,6 +1,6 @@
 # Visual asset provenance
 
-TBOI Map Tracker keeps its map/domain model independent from artwork. The actual floor map now uses the same **RoomShape previews** and **RoomType icons** shown by IsaacDocs, pinned to one documentation revision. Pickup icons remain a separate secondary skin because the RoomShape/RoomType tables do not cover pickups.
+TBOI Map Tracker keeps its map/domain model independent from artwork. The actual floor map uses the same **RoomShape previews** and **RoomType icons** shown by IsaacDocs, pinned to one documentation revision. Pickup icons remain a separate secondary skin because the RoomShape/RoomType tables do not cover pickups.
 
 ## Canonical room visuals — IsaacDocs
 
@@ -35,7 +35,23 @@ The adapter maps tracker room types to the corresponding IsaacDocs `roomtypes/<v
 
 Normal and Starting rooms intentionally render no additional type glyph. Tracker-only/off-grid types without a canonical RoomType icon keep a text fallback in controls, but the map itself does not invent a fake game icon.
 
-The PNGs are **not copied into this repository**. `src/components/IsaacSprite.tsx` references immutable raw URLs for the pinned IsaacDocs commit. No CSS blur, drop-shadow, contrast, or brightness filter is applied to the canonical room art.
+The PNGs are **not copied into this repository**. `src/components/IsaacSprite.tsx` references immutable raw URLs for the pinned IsaacDocs commit.
+
+## Isaac paper/menu chrome
+
+The web UI uses the game's parchment-style menu art as visual chrome instead of recreating the paper edges from generic CSS. The files are loaded from the public `clorc/gmaes` asset mirror and are pinned to an immutable revision so the site cannot change when that mirror's `main` branch changes.
+
+- Upstream mirror: https://github.com/clorc/gmaes
+- Pinned revision: `68228383cc8e4c0f25b73bd163cd4e4828dde0f8`
+- Source directory: `isaac/assets/sprites/main_menu/AB+/`
+- `emptyscreen.png` — large blank parchment used by side panels
+- `endingsmenupaper.png` — smaller paper sheet used for compact HUD strips
+- `menuoverlay.png` — subtle menu texture/doodles mixed into the paper
+- `menushadow.png` — documented as part of the source set and retained as the canonical menu-shadow reference
+
+The CSS implementation lives in `src/isaac-paper-ui.css`. Runtime URLs include the pinned commit SHA rather than `main`.
+
+The same asset names are also listed by The Spriters Resource's Rebirth main-menu asset index and by Steam depot listings, which is useful for cross-checking the extracted-resource names.
 
 ## Pickup skin — MiniMAPI
 
@@ -45,7 +61,7 @@ Pickups are a separate layer and currently use MiniMAPI's minimap icon sheet bec
 - Pinned revision: `ca7ecb5a256887963129fa6314e8babb6a3d3cb6`
 - Runtime sheet: `resources/gfx/ui/minimapapi/minimapapi_icons.png`
 
-MiniMAPI is **not** used anymore for RoomShape silhouettes or RoomType icons.
+MiniMAPI is **not** used for RoomShape silhouettes or RoomType icons.
 
 ## Fonts
 
@@ -58,6 +74,6 @@ The app loads web-font CSS at runtime and does not redistribute font files in th
 
 ## Rights / attribution
 
-IsaacDocs and MiniMAPI are community projects. The Binding of Isaac names, imagery and related game assets remain the property of their respective rights holders. This repository does not claim ownership over upstream or game artwork.
+IsaacDocs, MiniMAPI, and the public asset mirror are community projects. The Binding of Isaac names, imagery and related game assets remain the property of their respective rights holders. This repository does not claim ownership over upstream or game artwork.
 
 Users who want a fully self-contained/offline skin can extract their own Repentance+ resources with the game's `ResourceExtractor` and point the visual adapter at their locally hosted copies.
