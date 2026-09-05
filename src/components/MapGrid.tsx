@@ -4,7 +4,6 @@ import {
   buildOccupancy,
   coordinateKey,
   getDragRoomPlacement,
-  gridIndex,
 } from '../domain/geometry';
 import { GRID_SIZE, type GridPoint } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
