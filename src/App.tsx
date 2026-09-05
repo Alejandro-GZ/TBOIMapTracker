@@ -16,8 +16,6 @@ export default function App() {
   const setDocumentMeta = useTrackerStore((state) => state.setDocumentMeta);
   const loadDocument = useTrackerStore((state) => state.loadDocument);
   const newDocument = useTrackerStore((state) => state.newDocument);
-  const showIndices = useTrackerStore((state) => state.showIndices);
-  const setShowIndices = useTrackerStore((state) => state.setShowIndices);
 
   const exportDocument = () => {
     const blob = new Blob([JSON.stringify(document, null, 2)], { type: 'application/json' });
@@ -36,6 +34,10 @@ export default function App() {
     } catch (error) {
       window.alert(error instanceof Error ? error.message : 'Could not import that file.');
     }
+  };
+
+  const startNewDocument = () => {
+    if (window.confirm('Start a fresh map? Your current map is already autosaved in this browser.')) newDocument();
   };
 
   return (
@@ -73,37 +75,28 @@ export default function App() {
               placeholder="Seed"
             />
           </div>
-
-          <div className="top-actions">
-            <button type="button" onClick={() => setShowIndices(!showIndices)} className={showIndices ? 'active-button' : ''}>Grid</button>
-            <button type="button" onClick={() => fileInputRef.current?.click()}>Import</button>
-            <button type="button" onClick={exportDocument}>Export</button>
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Start a fresh map? Your current map is already autosaved in this browser.')) newDocument();
-              }}
-            >
-              New
-            </button>
-            <input
-              ref={fileInputRef}
-              className="hidden-input"
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void importDocument(file);
-                event.currentTarget.value = '';
-              }}
-            />
-          </div>
         </header>
       </div>
 
+      <input
+        ref={fileInputRef}
+        className="hidden-input"
+        type="file"
+        accept="application/json,.json"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void importDocument(file);
+          event.currentTarget.value = '';
+        }}
+      />
+
       <main className="workspace">
         <RoomPalette />
-        <MapGrid />
+        <MapGrid
+          onImport={() => fileInputRef.current?.click()}
+          onExport={exportDocument}
+          onNew={startNewDocument}
+        />
         <RoomInspector />
       </main>
     </div>
