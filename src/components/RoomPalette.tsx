@@ -1,4 +1,4 @@
-import { ROOM_SHAPES, ROOM_TYPES } from '../domain/catalog';
+import { ROOM_TYPES } from '../domain/catalog';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { RoomTypeSprite } from './IsaacSprite';
 
@@ -10,9 +10,7 @@ const GROUP_LABELS = {
 
 export function RoomPalette() {
   const placementType = useTrackerStore((state) => state.placementType);
-  const placementShape = useTrackerStore((state) => state.placementShape);
   const setPlacementType = useTrackerStore((state) => state.setPlacementType);
-  const setPlacementShape = useTrackerStore((state) => state.setPlacementShape);
 
   return (
     <aside className="panel palette-panel">
@@ -46,24 +44,10 @@ export function RoomPalette() {
         </section>
       ))}
 
-      <section className="shape-section">
-        <label htmlFor="placement-shape">Room shape</label>
-        <select
-          id="placement-shape"
-          value={placementShape}
-          onChange={(event) => setPlacementShape(event.target.value as typeof placementShape)}
-        >
-          {ROOM_SHAPES.map((shape) => (
-            <option key={shape.id} value={shape.id}>
-              {shape.label} — {shape.footprint}
-            </option>
-          ))}
-        </select>
-      </section>
-
-      <div className="tip-card">
-        <strong>Fast tracking</strong>
-        <span>Choose a type, then click an empty grid cell. Drag an existing room to move it.</span>
+      <div className="tip-card room-drag-help">
+        <strong>Draw the footprint</strong>
+        <span>Click one cell for 1×1. Drag across two cells for 1×2 / 2×1, or across a 2×2 block for a large room.</span>
+        <span>Corridor and L variants can still be selected from the room inspector after placement.</span>
       </div>
     </aside>
   );
