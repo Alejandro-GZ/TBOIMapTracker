@@ -63,6 +63,7 @@ interface TrackerState {
   patchRoom: (roomId: string, patch: Partial<Pick<Room, 'visited' | 'marked' | 'notes'>>) => void;
   deleteRoom: (roomId: string) => void;
   addPickup: (roomId: string, pickup: Omit<Pickup, 'id'>) => void;
+  decrementPickup: (roomId: string, pickupId: string) => void;
   removePickup: (roomId: string, pickupId: string) => void;
   setDocumentMeta: (patch: Partial<Pick<TrackerDocument, 'name' | 'floor' | 'seed'>>) => void;
   loadDocument: (document: TrackerDocument) => void;
@@ -236,11 +237,52 @@ export const useTrackerStore = create<TrackerState>()(
             ...state.document,
             dimensions: {
               ...state.document.dimensions,
-              [state.activeDimension]: rooms.map((room) =>
-                room.id === roomId
-                  ? { ...room, pickups: [...room.pickups, { ...pickup, id: id() }] }
-                  : room,
-              ),
+              [state.activeDimension]: rooms.map((room) => {
+                if (room.id !== roomId) return room;
+                const existingIndex = room.pickups.findIndex((candidate) =>
+                  candidate.kind === pickup.kind &&
+                  candidate.iconId === pickup.iconId &&
+                  candidate.label === pickup.label,
+                );
+                if (existingIndex < 0) {
+                  return { ...room, pickups: [...room.pickups, { ...pickup, id: id() }] };
+                }
+                return {
+                  ...room,
+                  pickups: room.pickups.map((candidate, index) =>
+                    index === existingIndex
+                      ? { ...candidate, quantity: candidate.quantity + Math.max(1, pickup.quantity) }
+                      : candidate,
+                  ),
+                };
+              }),
+            },
+          }),
+        });
+      },
+
+      decrementPickup: (roomId, pickupId) => {
+        const state = get();
+        const rooms = state.document.dimensions[state.activeDimension];
+        set({
+          document: withTouchedDocument({
+            ...state.document,
+            dimensions: {
+              ...state.document.dimensions,
+              [state.activeDimension]: rooms.map((room) => {
+                if (room.id !== roomId) return room;
+                const target = room.pickups.find((pickup) => pickup.id === pickupId);
+                if (!target) return room;
+                if (target.quantity <= 1) {
+                  return { ...room, pickups: room.pickups.filter((pickup) => pickup.id !== pickupId) };
+                }
+                return {
+                  ...room,
+                  pickups: room.pickups.map((pickup) =>
+                    pickup.id === pickupId ? { ...pickup, quantity: pickup.quantity - 1 } : pickup,
+                  ),
+                };
+              }),
             },
           }),
         });
