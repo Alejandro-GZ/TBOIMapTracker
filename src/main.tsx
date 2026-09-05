@@ -12,6 +12,7 @@ import './pixel-icons.css';
 import './inspector-v2.css';
 import './room-mark-overrides.css';
 import './header-icon-polish.css';
+import './map-tools.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
