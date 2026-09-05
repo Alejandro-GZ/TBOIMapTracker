@@ -10,7 +10,6 @@
   display: block;
   max-width: none !important;
   max-height: none !important;
-  object-fit: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   transform: none !important;
