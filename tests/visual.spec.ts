@@ -30,10 +30,17 @@ async function dragPath(page: Page, cells: Array<[number, number]>) {
   const first = boxes[0];
   await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
   await page.mouse.down();
+  await page.waitForTimeout(25);
+
   for (const box of boxes.slice(1)) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
+    // Pointer-path creation depends on entering each intended hit cell. A short
+    // dwell makes this deterministic when the viewport/layout changes size.
+    await page.waitForTimeout(25);
   }
+
   await page.mouse.up();
+  await page.waitForTimeout(25);
 }
 
 async function dragCells(page: Page, from: [number, number], to: [number, number]) {
