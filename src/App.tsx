@@ -47,79 +47,81 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark">M</div>
-          <div>
-            <strong>TBOI MAP TRACKER</strong>
-            <span>Repentance+ minimap memory</span>
+      <div className="top-paper-frame">
+        <header className="topbar">
+          <div className="brand">
+            <div className="brand-mark">M</div>
+            <div>
+              <strong>TBOI MAP TRACKER</strong>
+              <span>Repentance+ minimap memory</span>
+            </div>
           </div>
-        </div>
 
-        <div className="run-meta">
-          <input
-            className="run-name"
-            value={document.name}
-            onChange={(event) => setDocumentMeta({ name: event.target.value })}
-            aria-label="Run name"
-            placeholder="Run"
-          />
-          <input
-            value={document.floor}
-            onChange={(event) => setDocumentMeta({ floor: event.target.value })}
-            aria-label="Floor name"
-            placeholder="Floor"
-          />
-          <input
-            value={document.seed}
-            onChange={(event) => setDocumentMeta({ seed: event.target.value.toUpperCase() })}
-            aria-label="Seed"
-            placeholder="Seed"
-          />
-        </div>
+          <div className="run-meta">
+            <input
+              className="run-name"
+              value={document.name}
+              onChange={(event) => setDocumentMeta({ name: event.target.value })}
+              aria-label="Run name"
+              placeholder="Run"
+            />
+            <input
+              value={document.floor}
+              onChange={(event) => setDocumentMeta({ floor: event.target.value })}
+              aria-label="Floor name"
+              placeholder="Floor"
+            />
+            <input
+              value={document.seed}
+              onChange={(event) => setDocumentMeta({ seed: event.target.value.toUpperCase() })}
+              aria-label="Seed"
+              placeholder="Seed"
+            />
+          </div>
 
-        <div className="top-actions">
-          <button type="button" onClick={() => setShowIndices(!showIndices)} className={showIndices ? 'active-button' : ''}>Grid</button>
-          <button type="button" onClick={() => fileInputRef.current?.click()}>Import</button>
-          <button type="button" onClick={exportDocument}>Export</button>
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('Start a fresh map? Your current map is already autosaved in this browser.')) newDocument();
-            }}
-          >
-            New
-          </button>
-          <input
-            ref={fileInputRef}
-            className="hidden-input"
-            type="file"
-            accept="application/json,.json"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void importDocument(file);
-              event.currentTarget.value = '';
-            }}
-          />
-        </div>
-      </header>
+          <div className="top-actions">
+            <button type="button" onClick={() => setShowIndices(!showIndices)} className={showIndices ? 'active-button' : ''}>Grid</button>
+            <button type="button" onClick={() => fileInputRef.current?.click()}>Import</button>
+            <button type="button" onClick={exportDocument}>Export</button>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Start a fresh map? Your current map is already autosaved in this browser.')) newDocument();
+              }}
+            >
+              New
+            </button>
+            <input
+              ref={fileInputRef}
+              className="hidden-input"
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void importDocument(file);
+                event.currentTarget.value = '';
+              }}
+            />
+          </div>
+        </header>
 
-      <nav className="dimension-bar" aria-label="Level dimension">
-        <span className="dimension-label">Map layer</span>
-        {DIMENSIONS.map((dimension) => (
-          <button
-            type="button"
-            key={dimension.id}
-            className={activeDimension === dimension.id ? 'active' : ''}
-            onClick={() => setActiveDimension(dimension.id)}
-          >
-            <b>{dimension.short}</b>
-            <span>{dimension.label}</span>
-            <small>{document.dimensions[dimension.id].length}</small>
-          </button>
-        ))}
-        <span className="autosave-state">● saved locally</span>
-      </nav>
+        <nav className="dimension-bar" aria-label="Level dimension">
+          <span className="dimension-label">Map layer</span>
+          {DIMENSIONS.map((dimension) => (
+            <button
+              type="button"
+              key={dimension.id}
+              className={activeDimension === dimension.id ? 'active' : ''}
+              onClick={() => setActiveDimension(dimension.id)}
+            >
+              <b>{dimension.short}</b>
+              <span>{dimension.label}</span>
+              <small>{document.dimensions[dimension.id].length}</small>
+            </button>
+          ))}
+          <span className="autosave-state">● saved locally</span>
+        </nav>
+      </div>
 
       <main className="workspace">
         <RoomPalette />
