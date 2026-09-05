@@ -38,6 +38,7 @@
   position: relative;
   min-width: 0;
   min-height: 0;
+  overflow: visible;
   pointer-events: none;
   z-index: 2;
   opacity: 1;
@@ -47,12 +48,17 @@
   z-index: 4;
 }
 
+/* Never deform the canonical RoomShape preview to fit a CSS-grid span. The
+ * room container still owns the Isaac footprint; the art keeps its original
+ * aspect ratio and receives only a small footprint-aware scale adjustment. */
 .map-room-visual .isaac-room-shape {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: fill;
+  object-fit: contain;
+  transform: scale(var(--room-art-scale, 1));
+  transform-origin: center;
   pointer-events: none;
   opacity: .48;
 }
@@ -87,7 +93,7 @@
   position: absolute;
   z-index: 6;
   left: 50%;
-  bottom: 15%;
+  bottom: 10%;
   transform: translateX(-50%);
   display: flex;
   align-items: flex-end;
