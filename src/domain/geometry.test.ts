@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canPlaceRoom,
   getDragRoomPlacement,
+  getDragRoomPlacementFromPath,
   getRoomCells,
   getRoomConnections,
   getShapeBounds,
@@ -60,6 +61,43 @@ describe('Isaac level geometry', () => {
       anchor: { x: 4, y: 4 },
       shape: '2x2',
     });
+  });
+
+  it('infers all four L variants from a three-cell drag path', () => {
+    expect(getDragRoomPlacementFromPath([
+      { x: 5, y: 4 }, { x: 4, y: 5 }, { x: 5, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: 'LTL' });
+
+    expect(getDragRoomPlacementFromPath([
+      { x: 4, y: 4 }, { x: 4, y: 5 }, { x: 5, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: 'LTR' });
+
+    expect(getDragRoomPlacementFromPath([
+      { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 5, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: 'LBL' });
+
+    expect(getDragRoomPlacementFromPath([
+      { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 4, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: 'LBR' });
+  });
+
+  it('creates a 2x2 when the path covers all four cells or goes corner-to-corner directly', () => {
+    expect(getDragRoomPlacementFromPath([
+      { x: 4, y: 4 }, { x: 5, y: 4 }, { x: 5, y: 5 }, { x: 4, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: '2x2' });
+
+    expect(getDragRoomPlacementFromPath([
+      { x: 4, y: 4 }, { x: 5, y: 5 },
+    ])).toMatchObject({ anchor: { x: 4, y: 4 }, shape: '2x2' });
+  });
+
+  it('rejects drag paths outside a 2x2 Isaac footprint', () => {
+    expect(getDragRoomPlacementFromPath([
+      { x: 3, y: 3 }, { x: 4, y: 3 }, { x: 5, y: 3 },
+    ])).toBeNull();
+    expect(getDragRoomPlacementFromPath([
+      { x: 3, y: 3 }, { x: 3, y: 4 }, { x: 3, y: 5 },
+    ])).toBeNull();
   });
 
   it('rejects pointer selections larger than Isaac room footprints', () => {
