@@ -267,3 +267,28 @@ test('normal rooms can switch to canonical corridor and L previews', async ({ pa
   await expect(image).toBeVisible();
   expect(await image.getAttribute('src')).toContain('/roomshapes/9.png');
 });
+
+test('middle mouse drag pans the map without creating rooms', async ({ page }) => {
+  const viewport = page.getByTestId('map-viewport');
+  const surface = page.getByTestId('map-pan-surface');
+  const viewportBox = await viewport.boundingBox();
+  const before = await surface.boundingBox();
+  if (!viewportBox || !before) throw new Error('Map viewport is not visible');
+
+  const roomCountBefore = await page.locator('.map-room-visual').count();
+  const startX = viewportBox.x + viewportBox.width / 2;
+  const startY = viewportBox.y + viewportBox.height / 2;
+
+  await page.mouse.move(startX, startY);
+  await page.mouse.down({ button: 'middle' });
+  await expect(viewport).toHaveClass(/is-panning/);
+  await page.mouse.move(startX + 90, startY + 55, { steps: 8 });
+  await page.mouse.up({ button: 'middle' });
+  await expect(viewport).not.toHaveClass(/is-panning/);
+
+  const after = await surface.boundingBox();
+  if (!after) throw new Error('Map surface disappeared after panning');
+  expect(after.x - before.x).toBeGreaterThan(70);
+  expect(after.y - before.y).toBeGreaterThan(40);
+  await expect(page.locator('.map-room-visual')).toHaveCount(roomCountBefore);
+});

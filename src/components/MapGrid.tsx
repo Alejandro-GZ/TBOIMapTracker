@@ -15,6 +15,14 @@ interface DragSelection {
   path: GridPoint[];
 }
 
+interface PanGesture {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+}
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
@@ -35,7 +43,10 @@ export function MapGrid() {
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const panGestureRef = useRef<PanGesture | null>(null);
 
   const rooms = document.dimensions[activeDimension];
   const occupancy = useMemo(() => buildOccupancy(rooms), [rooms]);
@@ -106,6 +117,16 @@ export function MapGrid() {
 
   const changeZoom = (next: number) => {
     setZoom(clamp(next, 0.65, 2.2));
+  };
+
+  const finishPan = (pointerId: number) => {
+    const gesture = panGestureRef.current;
+    if (!gesture || gesture.pointerId !== pointerId) return;
+
+    const viewport = viewportRef.current;
+    if (viewport?.hasPointerCapture(pointerId)) viewport.releasePointerCapture(pointerId);
+    panGestureRef.current = null;
+    setIsPanning(false);
   };
 
   const cells = [];
@@ -180,7 +201,7 @@ export function MapGrid() {
   }
 
   const zoomStyle = {
-    transform: `scale(${zoom})`,
+    transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
     transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
   } as CSSProperties;
 
@@ -200,8 +221,40 @@ export function MapGrid() {
         </div>
       </div>
 
-      <div className="map-viewport" ref={viewportRef} data-testid="map-viewport">
-        <div className="map-zoom-surface" style={zoomStyle}>
+      <div
+        className={`map-viewport ${isPanning ? 'is-panning' : ''}`}
+        ref={viewportRef}
+        data-testid="map-viewport"
+        onPointerDown={(event) => {
+          if (event.button !== 1) return;
+          event.preventDefault();
+          event.stopPropagation();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          panGestureRef.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            originX: pan.x,
+            originY: pan.y,
+          };
+          setIsPanning(true);
+        }}
+        onPointerMove={(event) => {
+          const gesture = panGestureRef.current;
+          if (!gesture || gesture.pointerId !== event.pointerId) return;
+          event.preventDefault();
+          setPan({
+            x: gesture.originX + event.clientX - gesture.startX,
+            y: gesture.originY + event.clientY - gesture.startY,
+          });
+        }}
+        onPointerUp={(event) => finishPan(event.pointerId)}
+        onPointerCancel={(event) => finishPan(event.pointerId)}
+        onAuxClick={(event) => {
+          if (event.button === 1) event.preventDefault();
+        }}
+      >
+        <div className="map-zoom-surface" style={zoomStyle} data-testid="map-pan-surface">
           <div className="map-matrix">
             <div className={`map-grid-stack ${showIndices ? 'show-guides' : ''}`}>
               <div

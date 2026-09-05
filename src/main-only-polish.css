@@ -39,6 +39,17 @@
   box-shadow: none !important;
 }
 
+/* Middle mouse drag pans the complete map surface. Keep the normal left-button
+ * room cursors until the pan gesture actually starts. */
+.map-viewport.is-panning,
+.map-viewport.is-panning * {
+  cursor: grabbing !important;
+}
+
+.map-viewport.is-panning .map-zoom-surface {
+  transition: none !important;
+}
+
 /* Stronger foreground for the paper-menu actions. */
 .top-paper-frame .top-actions button {
   color: #6b2b22 !important;
