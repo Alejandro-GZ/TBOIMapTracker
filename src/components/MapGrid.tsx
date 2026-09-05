@@ -61,12 +61,33 @@ export function MapGrid() {
 
   useEffect(() => {
     const clearDanglingSelection = () => setDragSelection(null);
+    window.addEventListener('pointerup', clearDanglingSelection);
     window.addEventListener('pointercancel', clearDanglingSelection);
     window.addEventListener('blur', clearDanglingSelection);
     return () => {
+      window.removeEventListener('pointerup', clearDanglingSelection);
       window.removeEventListener('pointercancel', clearDanglingSelection);
       window.removeEventListener('blur', clearDanglingSelection);
     };
+  }, []);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      setZoomOrigin({
+        x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
+        y: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
+      });
+      const factor = event.deltaY < 0 ? 1.1 : 0.9;
+      setZoom((current) => clamp(current * factor, 0.65, 2.2));
+    };
+
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    return () => viewport.removeEventListener('wheel', handleWheel);
   }, []);
 
   const finishRoomGesture = (point: GridPoint) => {
@@ -186,22 +207,7 @@ export function MapGrid() {
         </div>
       </div>
 
-      <div
-        className="map-viewport"
-        ref={viewportRef}
-        onWheel={(event) => {
-          event.preventDefault();
-          const rect = viewportRef.current?.getBoundingClientRect();
-          if (rect) {
-            setZoomOrigin({
-              x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
-              y: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
-            });
-          }
-          const factor = event.deltaY < 0 ? 1.1 : 0.9;
-          setZoom((current) => clamp(current * factor, 0.65, 2.2));
-        }}
-      >
+      <div className="map-viewport" ref={viewportRef}>
         <div className="map-zoom-surface" style={zoomStyle}>
           <div className="map-matrix">
             <div className="axis-corner" aria-hidden="true">·</div>
