@@ -48,9 +48,9 @@
   z-index: 4;
 }
 
-/* Never deform the canonical RoomShape preview to fit a CSS-grid span. The
- * room container still owns the Isaac footprint; the art keeps its original
- * aspect ratio and receives only a small footprint-aware scale adjustment. */
+/* The canonical preview keeps its 34×30 canvas and its source aspect ratio.
+ * MapRoomVisual provides the footprint-specific scale that removes transparent
+ * preview padding for 1-cell and double rooms. */
 .map-room-visual .isaac-room-shape {
   position: absolute;
   inset: 0;
@@ -60,15 +60,12 @@
   transform: scale(var(--room-art-scale, 1));
   transform-origin: center;
   pointer-events: none;
-  opacity: .48;
+  opacity: 1;
 }
 
-.map-room-visual.unvisited .isaac-room-shape {
-  opacity: .30;
-}
-
+.map-room-visual.unvisited .isaac-room-shape,
 .map-room-visual.selected .isaac-room-shape {
-  opacity: .62;
+  opacity: 1;
 }
 
 .map-room-type-icon {
@@ -84,7 +81,7 @@
 }
 
 .map-room-visual.unvisited .map-room-type-icon {
-  opacity: .60;
+  opacity: 1;
 }
 
 /* Pickups are visible directly on the floor map, like information laid on top
