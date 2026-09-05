@@ -18,20 +18,26 @@ const ALL_SHAPES: readonly RoomShapeId[] = [
 const SINGLE_ROOM: readonly RoomShapeId[] = ['1x1'];
 const BOSS_SHAPES: readonly RoomShapeId[] = ['1x1', '1x2', '2x1', '2x2'];
 const BLACK_MARKET_SHAPES: readonly RoomShapeId[] = ['2x1'];
+const PLANETARIUM_SHAPES: readonly RoomShapeId[] = ['1x1', 'IH', 'IV'];
+const VERTICAL_CLOSET_SHAPES: readonly RoomShapeId[] = ['1x1', 'IV'];
 
 /**
- * Tracker shape validity.
+ * RoomType -> RoomShape validity for vanilla/Repentance+ layouts.
  *
- * The first implementation was deliberately conservative and forced almost
- * every named special room to 1x1. That is too restrictive for a layout
- * tracker: special-room data can use non-square/narrow/large layouts, and the
- * editor should not reject those footprints just because the room has a named
- * type. Curse Rooms, Planetariums and the other floor specials below therefore
- * use the complete RoomShape catalogue.
+ * Keep this table deliberately data-driven rather than treating every special
+ * room as a normal room. Evidence used when defining the non-1x1 exceptions:
  *
- * Types whose minimap semantics are intrinsically fixed (start/secret/off-grid
- * transitions, coloured single rooms, etc.) remain constrained. Bosses keep
- * their regular large arenas and Black Market remains two rooms wide.
+ * - Planetarium has dedicated 1x1, IH and IV backdrop variants and the wiki
+ *   explicitly documents closet-sized Planetarium layouts.
+ * - Library has a documented closet-sized layout; the vanilla layout is the
+ *   vertical closet form (IV).
+ * - Arcade has vanilla narrow vertical layouts in addition to standard 1x1.
+ * - Boss rooms retain the large rectangular arenas already supported here.
+ * - Black Market is the canonical two-rooms-wide special room.
+ *
+ * Curse, Challenge/Boss Challenge, Sacrifice, Dice and Bedroom layouts in the
+ * vanilla room pools are standard 1x1 rooms. They must not inherit arbitrary
+ * L/large shapes simply because those shapes exist for normal rooms.
  */
 export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]> = {
   normal: ALL_SHAPES,
@@ -43,15 +49,15 @@ export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]
   secret: SINGLE_ROOM,
   'super-secret': SINGLE_ROOM,
   'ultra-secret': SINGLE_ROOM,
-  arcade: ALL_SHAPES,
-  curse: ALL_SHAPES,
-  challenge: ALL_SHAPES,
-  'boss-challenge': ALL_SHAPES,
-  library: ALL_SHAPES,
-  sacrifice: ALL_SHAPES,
-  dice: ALL_SHAPES,
-  planetarium: ALL_SHAPES,
-  bedroom: ALL_SHAPES,
+  arcade: VERTICAL_CLOSET_SHAPES,
+  curse: SINGLE_ROOM,
+  challenge: SINGLE_ROOM,
+  'boss-challenge': SINGLE_ROOM,
+  library: VERTICAL_CLOSET_SHAPES,
+  sacrifice: SINGLE_ROOM,
+  dice: SINGLE_ROOM,
+  planetarium: PLANETARIUM_SHAPES,
+  bedroom: SINGLE_ROOM,
   devil: SINGLE_ROOM,
   angel: SINGLE_ROOM,
   'black-market': BLACK_MARKET_SHAPES,
