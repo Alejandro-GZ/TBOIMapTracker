@@ -6,5 +6,6 @@ export default defineConfig({
   base: '/TBOIMapTracker/',
   test: {
     environment: 'node',
+    exclude: ['tests/**', 'node_modules/**', 'dist/**'],
   },
 });
