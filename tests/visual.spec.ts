@@ -30,10 +30,15 @@ async function dragPath(page: Page, cells: Array<[number, number]>) {
   const first = boxes[0];
   await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
   await page.mouse.down();
+  await page.waitForTimeout(25);
+
   for (const box of boxes.slice(1)) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
+    await page.waitForTimeout(25);
   }
+
   await page.mouse.up();
+  await page.waitForTimeout(25);
 }
 
 async function dragCells(page: Page, from: [number, number], to: [number, number]) {
@@ -84,7 +89,13 @@ test('builds a representative floor through the real UI and captures it', async 
 
   const horizontalShape = page.locator('[data-room-shape="2x1"] .isaac-room-shape').first();
   await expect(horizontalShape).toHaveCSS('object-fit', 'contain');
+  await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
+
+  for (const selector of ['.top-paper-frame', '.palette-panel', '.inspector-panel']) {
+    const backgroundImage = await page.locator(selector).evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(backgroundImage).not.toBe('none');
+  }
 
   await expect(page.getByTestId('room-pickup-layer')).toBeVisible();
   await expect(page.getByTestId('map-door-layer')).toBeVisible();
@@ -115,7 +126,7 @@ test('builds a representative floor through the real UI and captures it', async 
   });
 });
 
-test('dragging cells creates rectangular and L Isaac footprints', async ({ page }) => {
+test('dragging cells creates horizontal, vertical and L Isaac footprints', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
 
   await dragCells(page, [1, 1], [2, 1]);
@@ -123,9 +134,6 @@ test('dragging cells creates rectangular and L Isaac footprints', async ({ page 
 
   await dragCells(page, [10, 1], [10, 2]);
   await expect(page.locator('[data-room-shape="1x2"]')).toHaveCount(1);
-
-  await dragPath(page, [[1, 10], [2, 10], [2, 11], [1, 11]]);
-  await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
 
   await dragPath(page, [[8, 9], [9, 9], [9, 10]]);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
