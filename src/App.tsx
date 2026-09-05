@@ -131,7 +131,7 @@ export default function App() {
         <span>{roomCount} rooms</span>
         <span>{pickupCount} pickups tracked</span>
         <span>13×13 · {DIMENSIONS.find((dimension) => dimension.id === activeDimension)?.short}</span>
-        <span className="footer-note">Pinned MiniMAPI sprite skin · manual floor tracker</span>
+        <span className="footer-note">Canonical IsaacDocs room art · manual floor tracker</span>
       </footer>
     </div>
   );
