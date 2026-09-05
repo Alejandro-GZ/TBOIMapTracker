@@ -20,12 +20,6 @@ export default function App() {
   const showIndices = useTrackerStore((state) => state.showIndices);
   const setShowIndices = useTrackerStore((state) => state.setShowIndices);
 
-  const roomCount = document.dimensions[activeDimension].length;
-  const pickupCount = document.dimensions[activeDimension].reduce(
-    (sum, room) => sum + room.pickups.reduce((roomSum, pickup) => roomSum + pickup.quantity, 0),
-    0,
-  );
-
   const exportDocument = () => {
     const blob = new Blob([JSON.stringify(document, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -106,7 +100,6 @@ export default function App() {
         </header>
 
         <nav className="dimension-bar" aria-label="Level dimension">
-          <span className="dimension-label">Map layer</span>
           {DIMENSIONS.map((dimension) => (
             <button
               type="button"
@@ -119,7 +112,6 @@ export default function App() {
               <small>{document.dimensions[dimension.id].length}</small>
             </button>
           ))}
-          <span className="autosave-state">● saved locally</span>
         </nav>
       </div>
 
@@ -128,13 +120,6 @@ export default function App() {
         <MapGrid />
         <RoomInspector />
       </main>
-
-      <footer className="footer-bar">
-        <span>{roomCount} rooms</span>
-        <span>{pickupCount} pickups tracked</span>
-        <span>13×13 · {DIMENSIONS.find((dimension) => dimension.id === activeDimension)?.short}</span>
-        <span className="footer-note">Canonical IsaacDocs room art · manual floor tracker</span>
-      </footer>
     </div>
   );
 }

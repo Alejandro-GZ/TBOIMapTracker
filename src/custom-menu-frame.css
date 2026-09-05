@@ -114,6 +114,62 @@
   box-shadow: none !important;
 }
 
+/* The paper is now the menu chrome, so keep copy to a minimum and make room
+ * types read like Isaac menu entries instead of dense dashboard cards. */
+.palette-title {
+  margin-bottom: 8px !important;
+}
+
+.palette-title h2 {
+  margin: 0 !important;
+  font-size: 18px !important;
+}
+
+.palette-panel .palette-group {
+  margin-bottom: 10px !important;
+}
+
+.palette-panel .palette-group h3 {
+  margin: 0 0 4px !important;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(70, 56, 45, .18);
+  font-size: 8px !important;
+  letter-spacing: .08em !important;
+}
+
+.palette-panel .room-palette-grid {
+  gap: 2px 4px !important;
+}
+
+.palette-panel .room-tool {
+  min-height: 32px !important;
+  grid-template-columns: 23px minmax(0, 1fr) !important;
+  gap: 4px !important;
+  padding: 2px 1px !important;
+}
+
+.palette-panel .room-tool span:nth-child(2) {
+  font-size: 8px !important;
+  line-height: 1.05 !important;
+}
+
+.palette-panel .room-tool.active {
+  transform: translateX(3px) !important;
+}
+
+.inspector-panel .panel-heading {
+  margin-bottom: 8px !important;
+}
+
+.inspector-panel .shape-inspector-section {
+  margin-top: 8px;
+}
+
+.empty-inspector .inspector-empty-diagram {
+  margin-top: 18px;
+  opacity: .55;
+}
+
 /* The playfield now uses the same warm, near-black brown family as the Isaac
  * menu backdrop rather than a neutral black web canvas. */
 body,

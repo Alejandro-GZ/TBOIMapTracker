@@ -81,14 +81,23 @@ test('builds a representative floor through the real UI and captures it', async 
   );
   expect(shapeSources.every((src) => src.includes(`wofsauge/IsaacDocs/${DOCS_REVISION}`))).toBeTruthy();
 
-  const treasureIcon = page.locator('.map-room-visual[data-room-type="treasure"] img[data-isaac-room-type="treasure"]');
-  await expect(treasureIcon).toBeVisible();
-  expect(await treasureIcon.getAttribute('src')).toContain('/roomtypes/4.png');
+  const treasureRoom = page.locator('.map-room-visual[data-room-type="treasure"]').first();
+  const treasureShape = treasureRoom.locator('.isaac-room-shape');
+  const treasureIcon = treasureRoom.locator('img[data-isaac-room-type="treasure"]');
+  await expect(treasureShape).toHaveCSS('opacity', '1');
+  await expect(treasureIcon).toHaveCSS('opacity', '1');
+  expect(Number(await treasureRoom.evaluate((element) =>
+    getComputedStyle(element).getPropertyValue('--room-art-scale').trim(),
+  ))).toBeCloseTo(1.88, 2);
+
   const treasureIconBox = await treasureIcon.boundingBox();
   expect(treasureIconBox?.width ?? 0).toBeGreaterThanOrEqual(30);
 
-  const horizontalShape = page.locator('[data-room-shape="2x1"] .isaac-room-shape').first();
-  await expect(horizontalShape).toHaveCSS('object-fit', 'contain');
+  const horizontalRoom = page.locator('[data-room-shape="2x1"]').first();
+  await expect(horizontalRoom.locator('.isaac-room-shape')).toHaveCSS('object-fit', 'contain');
+  expect(Number(await horizontalRoom.evaluate((element) =>
+    getComputedStyle(element).getPropertyValue('--room-art-scale').trim(),
+  ))).toBeCloseTo(1.875, 3);
   await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
 
@@ -98,7 +107,9 @@ test('builds a representative floor through the real UI and captures it', async 
   }
 
   await expect(page.getByTestId('room-pickup-layer')).toBeVisible();
-  await expect(page.getByTestId('map-door-layer')).toBeVisible();
+  await expect(page.getByTestId('map-door-layer')).toHaveCount(0);
+  await expect(page.locator('.map-status')).toHaveCount(0);
+  await expect(page.locator('.room-drag-help')).toHaveCount(0);
 
   const viewportContract = await page.evaluate(() => ({
     innerHeight: window.innerHeight,
@@ -126,7 +137,7 @@ test('builds a representative floor through the real UI and captures it', async 
   });
 });
 
-test('dragging cells creates horizontal, vertical and L Isaac footprints', async ({ page }) => {
+test('dragging cells creates horizontal, vertical and L Isaac footprints for normal rooms', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
 
   await dragCells(page, [1, 1], [2, 1]);
@@ -139,8 +150,26 @@ test('dragging cells creates horizontal, vertical and L Isaac footprints', async
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
 });
 
-test('corridor and L shapes use the canonical preview selected through the inspector', async ({ page }) => {
-  await page.getByTestId('map-cell-6-6').click();
+test('room types expose and accept only their valid shapes', async ({ page }) => {
+  await page.getByTestId('room-tool-shop').click();
+  await dragCells(page, [1, 1], [2, 1]);
+  await expect(page.locator('.map-room-visual[data-room-type="shop"]')).toHaveCount(0);
+
+  await page.getByTestId('room-tool-boss').click();
+  await page.getByTestId('map-cell-3-3').click();
+  await expect(page.getByTestId('shape-option-2x2')).toBeVisible();
+  await expect(page.getByTestId('shape-option-LTL')).toHaveCount(0);
+
+  await page.getByTestId('room-tool-black-market').click();
+  await dragCells(page, [8, 3], [9, 3]);
+  const blackMarket = page.locator('.map-room-visual[data-room-type="black-market"]');
+  await expect(blackMarket).toHaveCount(1);
+  await expect(blackMarket).toHaveAttribute('data-room-shape', '2x1');
+});
+
+test('normal rooms can switch to canonical corridor and L previews', async ({ page }) => {
+  await page.getByTestId('room-tool-normal').click();
+  await page.getByTestId('map-cell-3-3').click();
   await page.getByTestId('shape-option-LTL').click();
   await waitForArt(page);
 
