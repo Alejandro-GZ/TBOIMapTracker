@@ -1,12 +1,28 @@
 import { useState } from 'react';
-import { PICKUP_META, ROOM_TYPES, getRoomTypeMeta } from '../domain/catalog';
+import { ROOM_TYPES, getRoomTypeMeta } from '../domain/catalog';
+import {
+  DEFAULT_PICKUP_ICON_BY_KIND,
+  TRACKABLE_MARKERS,
+  TRACKABLE_MARKER_BY_ID,
+  type MinimapIconId,
+} from '../domain/minimapIcons';
 import { getAllowedRoomShapes } from '../domain/roomRules';
-import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
+import type { RoomShapeId, RoomTypeId } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { PickupSprite, RoomTypeSprite } from './IsaacSprite';
 import { RoomShapePicker } from './RoomShapePicker';
 
-const QUICK_PICKUPS: PickupKind[] = ['coin', 'key', 'bomb', 'heart', 'chest', 'battery'];
+const QUICK_MARKERS: MinimapIconId[] = [
+  'P_PENNY',
+  'P_KEY',
+  'P_BOMB',
+  'P_FULLHEART',
+  'P_CHEST',
+  'P_BATTERY',
+];
+
+const PICKUP_MARKERS = TRACKABLE_MARKERS.filter((marker) => marker.category === 'pickup');
+const STRUCTURE_MARKERS = TRACKABLE_MARKERS.filter((marker) => marker.category === 'structure');
 
 export function RoomInspector() {
   const document = useTrackerStore((state) => state.document);
@@ -20,7 +36,7 @@ export function RoomInspector() {
   const addPickup = useTrackerStore((state) => state.addPickup);
   const removePickup = useTrackerStore((state) => state.removePickup);
 
-  const [pickupKind, setPickupKind] = useState<PickupKind>('collectible');
+  const [markerId, setMarkerId] = useState<MinimapIconId>('P_ITEM');
   const [pickupLabel, setPickupLabel] = useState('');
   const [pickupQuantity, setPickupQuantity] = useState(1);
   const [geometryError, setGeometryError] = useState('');
@@ -58,9 +74,19 @@ export function RoomInspector() {
     setGeometryError(changed ? '' : 'That shape does not fit here.');
   };
 
+  const addExactMarker = (id: MinimapIconId, quantity = 1, labelOverride?: string) => {
+    const marker = TRACKABLE_MARKER_BY_ID[id];
+    if (!marker) return;
+    addPickup(room.id, {
+      kind: marker.kind,
+      iconId: marker.id,
+      label: labelOverride?.trim() || marker.label,
+      quantity: Math.max(1, quantity),
+    });
+  };
+
   const submitPickup = () => {
-    const label = pickupLabel.trim() || PICKUP_META[pickupKind].label;
-    addPickup(room.id, { kind: pickupKind, label, quantity: Math.max(1, pickupQuantity) });
+    addExactMarker(markerId, pickupQuantity, pickupLabel);
     setPickupLabel('');
     setPickupQuantity(1);
   };
@@ -72,7 +98,7 @@ export function RoomInspector() {
           <span className="eyebrow">Room inspector</span>
           <h2>
             <span className={`type-chip tone-${meta.tone}`}>
-              <RoomTypeSprite type={room.type} fallback={meta.icon} scale={1} />
+              <RoomTypeSprite type={room.type} fallback={meta.icon} scale={2} />
             </span>
             {meta.label}
           </h2>
@@ -117,32 +143,45 @@ export function RoomInspector() {
 
       <section className="inspector-section">
         <div className="section-title-row">
-          <h3>Pickups left here</h3>
+          <h3>Contents left here</h3>
           <span>{room.pickups.reduce((sum, pickup) => sum + pickup.quantity, 0)} total</span>
         </div>
 
         <div className="quick-pickups">
-          {QUICK_PICKUPS.map((kind) => (
-            <button
-              type="button"
-              key={kind}
-              data-testid={`quick-pickup-${kind}`}
-              onClick={() => addPickup(room.id, { kind, label: PICKUP_META[kind].label, quantity: 1 })}
-              title={`Add ${PICKUP_META[kind].label}`}
-            >
-              <strong>
-                <PickupSprite kind={kind} fallback={PICKUP_META[kind].icon} scale={1} />
-              </strong>
-              <span>+1</span>
-            </button>
-          ))}
+          {QUICK_MARKERS.map((id) => {
+            const marker = TRACKABLE_MARKER_BY_ID[id]!;
+            return (
+              <button
+                type="button"
+                key={id}
+                data-testid={`quick-pickup-${marker.kind}`}
+                onClick={() => addExactMarker(id)}
+                title={`Add ${marker.label}`}
+              >
+                <strong>
+                  <PickupSprite kind={marker.kind} iconId={id} scale={2} />
+                </strong>
+                <span>+1</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="pickup-form">
-          <select value={pickupKind} onChange={(event) => setPickupKind(event.target.value as PickupKind)} aria-label="Pickup kind">
-            {Object.entries(PICKUP_META).map(([kind, data]) => <option key={kind} value={kind}>{data.label}</option>)}
+        <div className="pickup-form exact-marker-form">
+          <select
+            value={markerId}
+            onChange={(event) => setMarkerId(event.target.value as MinimapIconId)}
+            aria-label="Pickup or structure"
+            data-testid="marker-select"
+          >
+            <optgroup label="Pickups">
+              {PICKUP_MARKERS.map((marker) => <option key={marker.id} value={marker.id}>{marker.label}</option>)}
+            </optgroup>
+            <optgroup label="Structures">
+              {STRUCTURE_MARKERS.map((marker) => <option key={marker.id} value={marker.id}>{marker.label}</option>)}
+            </optgroup>
           </select>
-          <input value={pickupLabel} onChange={(event) => setPickupLabel(event.target.value)} placeholder="Name / variant" aria-label="Pickup name" />
+          <input value={pickupLabel} onChange={(event) => setPickupLabel(event.target.value)} placeholder="Custom label" aria-label="Marker name" />
           <input type="number" min="1" max="99" value={pickupQuantity} onChange={(event) => setPickupQuantity(Number(event.target.value))} aria-label="Quantity" />
           <button type="button" className="primary-button" onClick={submitPickup}>Add</button>
         </div>
@@ -152,7 +191,12 @@ export function RoomInspector() {
           {room.pickups.map((pickup) => (
             <div className="pickup-row" key={pickup.id}>
               <span className="pickup-icon">
-                <PickupSprite kind={pickup.kind} fallback={PICKUP_META[pickup.kind].icon} scale={1} />
+                <PickupSprite
+                  kind={pickup.kind}
+                  iconId={pickup.iconId}
+                  fallback={DEFAULT_PICKUP_ICON_BY_KIND[pickup.kind] ? undefined : '•'}
+                  scale={2}
+                />
               </span>
               <span className="pickup-name">{pickup.label}</span>
               <strong>×{pickup.quantity}</strong>
@@ -171,7 +215,7 @@ export function RoomInspector() {
         type="button"
         className="danger-button"
         onClick={() => {
-          if (window.confirm('Delete this room and its recorded pickups?')) deleteRoom(room.id);
+          if (window.confirm('Delete this room and its recorded contents?')) deleteRoom(room.id);
         }}
       >
         Delete room

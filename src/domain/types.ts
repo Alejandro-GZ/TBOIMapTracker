@@ -69,6 +69,8 @@ export interface Pickup {
   kind: PickupKind;
   label: string;
   quantity: number;
+  /** Exact icon from the vendored MiniMAPI atlas. Optional for v1 imports. */
+  iconId?: string;
   notes?: string;
 }
 

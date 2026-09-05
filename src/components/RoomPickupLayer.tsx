@@ -19,9 +19,11 @@ export function RoomPickupLayer({ pickups }: { pickups: Pickup[] }) {
         <span className="room-pickup-token" key={pickup.id} title={pickup.label}>
           <PickupSprite
             kind={pickup.kind}
+            iconId={pickup.iconId}
             fallback={PICKUP_META[pickup.kind].icon}
-            scale={1}
+            scale={2}
             className="map-pickup-sprite"
+            map
           />
           {pickup.quantity > 1 && <b>×{pickup.quantity}</b>}
         </span>
