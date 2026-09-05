@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { canPlaceRoom, getRoomCells, gridIndex } from './geometry';
+import {
+  canPlaceRoom,
+  getRoomCells,
+  getShapeBounds,
+  getShapeVisualCenter,
+  gridIndex,
+} from './geometry';
 import type { Room } from './types';
 
 const room = (overrides: Partial<Room> = {}): Room => ({
@@ -20,6 +26,19 @@ describe('Isaac level geometry', () => {
 
   it('uses three occupied cells for L rooms', () => {
     expect(getRoomCells(room({ shape: 'LTL' }))).toHaveLength(3);
+  });
+
+  it('reports the visual bounds of large and L rooms', () => {
+    expect(getShapeBounds('1x1')).toEqual({ width: 1, height: 1 });
+    expect(getShapeBounds('1x2')).toEqual({ width: 1, height: 2 });
+    expect(getShapeBounds('2x1')).toEqual({ width: 2, height: 1 });
+    expect(getShapeBounds('LTL')).toEqual({ width: 2, height: 2 });
+  });
+
+  it('centers an L-room icon over occupied cells rather than the missing corner', () => {
+    const center = getShapeVisualCenter('LTL');
+    expect(center.x).toBeGreaterThan(1);
+    expect(center.y).toBeGreaterThan(1);
   });
 
   it('rejects a 2x2 room that crosses the 13x13 boundary', () => {
