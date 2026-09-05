@@ -2,12 +2,18 @@ import { PICKUP_META } from '../domain/catalog';
 import type { Pickup } from '../domain/types';
 import { PickupSprite } from './IsaacSprite';
 
+interface RoomPickupLayerProps {
+  pickups: Pickup[];
+  layout: 'row' | 'column';
+}
+
 /**
  * The floor map is a memory aid, not a second inventory panel. Keep the room
  * readable by showing one representative pickup/structure and collapsing every
- * additional recorded unit into +N.
+ * additional recorded unit into +N. Narrow/vertical rooms stack that summary;
+ * horizontal rooms have enough width to keep it on one line.
  */
-export function RoomPickupLayer({ pickups }: { pickups: Pickup[] }) {
+export function RoomPickupLayer({ pickups, layout }: RoomPickupLayerProps) {
   if (pickups.length === 0) return null;
 
   const first = pickups[0];
@@ -15,7 +21,12 @@ export function RoomPickupLayer({ pickups }: { pickups: Pickup[] }) {
   const hiddenQuantity = Math.max(0, totalQuantity - 1);
 
   return (
-    <span className="room-pickup-layer" aria-hidden="true" data-testid="room-pickup-layer">
+    <span
+      className={`room-pickup-layer pickup-layout-${layout}`}
+      aria-hidden="true"
+      data-testid="room-pickup-layer"
+      data-pickup-layout={layout}
+    >
       <span className="room-pickup-token" title={first.label}>
         <PickupSprite
           kind={first.kind}
