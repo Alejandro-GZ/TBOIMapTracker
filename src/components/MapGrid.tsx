@@ -8,6 +8,7 @@ import {
 } from '../domain/geometry';
 import { GRID_SIZE } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
+import { RoomTypeSprite } from './IsaacSprite';
 
 export function MapGrid() {
   const document = useTrackerStore((state) => state.document);
@@ -80,7 +81,12 @@ export function MapGrid() {
           {showIndices && <span className="cell-index">{gridIndex(point)}</span>}
           {room && isPrimary && (
             <span className="room-mark">
-              <strong>{meta?.icon}</strong>
+              <RoomTypeSprite
+                type={room.type}
+                fallback={meta?.icon ?? '•'}
+                scale={1.5}
+                className="map-room-sprite"
+              />
               <small>{room.shape}</small>
             </span>
           )}

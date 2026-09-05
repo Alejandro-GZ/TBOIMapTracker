@@ -1,0 +1,75 @@
+.isaac-sprite {
+  display: inline-block;
+  flex: 0 0 auto;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.isaac-sprite-fallback {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1em;
+  min-height: 1em;
+  font-family: Georgia, serif;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Keep the room tile close to Isaac's neutral minimap palette and let the
+   sprite communicate the room type instead of tinting the whole room. */
+.grid-cell.occupied[class*="tone-"] {
+  background: #4a4642;
+  border-color: #81776e;
+}
+
+.grid-cell.occupied:not(.selected) {
+  box-shadow: inset 0 0 0 1px #28231f;
+}
+
+.room-mark {
+  gap: 1px;
+}
+
+.map-room-sprite {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .85));
+}
+
+.room-mark small {
+  opacity: .48;
+}
+
+.room-tool-icon,
+.type-chip,
+.pickup-icon {
+  overflow: hidden;
+}
+
+.room-tool-icon .isaac-sprite,
+.type-chip .isaac-sprite,
+.quick-pickups .isaac-sprite,
+.pickup-icon .isaac-sprite {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .65));
+}
+
+.room-tool-icon {
+  display: grid;
+  place-items: center;
+}
+
+.type-chip {
+  display: inline-grid;
+  place-items: center;
+}
+
+.quick-pickups strong {
+  display: grid;
+  place-items: center;
+  min-height: 20px;
+}
+
+.pickup-icon {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+}
