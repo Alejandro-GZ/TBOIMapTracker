@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react';
-import roomDefaultIcon from '../assets/room-default.png';
 import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 
 /**
@@ -10,6 +9,7 @@ import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
  */
 export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
 const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
+const ROOM_DEFAULT_ICON = new URL('../assets/room-default.png', import.meta.url).href;
 
 const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   '1x1': 1,
@@ -64,7 +64,7 @@ export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
   `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
 
 export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
-  if (type === 'normal' || type === 'blue') return roomDefaultIcon;
+  if (type === 'normal' || type === 'blue') return ROOM_DEFAULT_ICON;
   const value = ROOM_TYPE_VALUES[type];
   return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
 };
