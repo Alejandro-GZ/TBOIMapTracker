@@ -87,6 +87,15 @@ test('builds a representative floor through the real UI and captures it', async 
     path: testInfo.outputPath('canonical-floor.png'),
     animations: 'disabled',
   });
+  await page.locator('.map-stage').screenshot({
+    path: testInfo.outputPath('map-stage.png'),
+    animations: 'disabled',
+  });
+  await page.screenshot({
+    path: testInfo.outputPath('full-workspace.png'),
+    fullPage: false,
+    animations: 'disabled',
+  });
 });
 
 test('dragging cells creates the requested rectangular Isaac footprints', async ({ page }) => {
