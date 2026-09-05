@@ -35,6 +35,13 @@ export type RoomTypeId =
   | 'dice'
   | 'planetarium'
   | 'bedroom'
+  | 'dirty-bedroom'
+  | 'chest-room'
+  | 'mirror'
+  | 'rails'
+  | 'red-treasure'
+  | 'silver-treasure'
+  | 'teleporter'
   | 'devil'
   | 'angel'
   | 'black-market'
@@ -43,6 +50,8 @@ export type RoomTypeId =
   | 'red'
   | 'secret-exit'
   | 'other';
+
+export type MapTool = 'move' | 'paint' | 'erase';
 
 export type PickupKind =
   | 'coin'

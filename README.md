@@ -15,6 +15,7 @@ Isaac runs often leave useful resources behind: hearts, bombs, keys, chests, car
 - Supports `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2` and all four L variants.
 - Placement is rejected if a shape overlaps another room or leaves the grid.
 - Room types expose only shapes that are valid for that tracker type.
+- All **30 MiniMAPI room icons** in the local atlas are now exposed by tracker room types, including Dirty Bedroom, Chest Room, Mirror Room, Rails Room, Red/Silver Treasure Rooms and Teleporter Room.
 - Devil, Angel, Black Market and I AM ERROR can be represented visually even though they have special/off-grid engine semantics.
 - A new map starts with the Starting Room at `(6,6)` / grid index `84`.
 
@@ -28,9 +29,13 @@ References:
 ## Features
 
 - 13 × 13 room editor with coordinate axes outside the matrix.
-- Click an empty cell for a `1x1`; drag a path for horizontal/vertical doubles, `2x2` and L footprints.
-- Drag existing rooms to reposition them.
+- Explicit map modes for **Move**, **Paint rooms** and **Erase rooms**.
+- Choosing a room type in the left palette automatically switches the map to **Paint** mode.
+- In Paint mode, click an empty cell for a `1x1`; drag a path for horizontal/vertical doubles, `2x2` and L footprints. Painting over an existing room is a no-op.
+- In Move mode, select and drag existing rooms to reposition them.
+- In Erase mode, click any occupied cell to remove the whole room immediately; the inspector delete button also deletes without a confirmation dialog.
 - Mouse wheel zoom focused around the pointer, plus `− / reset / +` controls.
+- Compact icon toolbar directly below the zoom controls for Move/Paint/Erase, grid guides, import, export and new-map actions.
 - Hold the **middle mouse button** and drag to pan the map without interfering with room placement.
 - Browser-height workspace: the page itself never scrolls; dense side panels scroll internally.
 - Canonical **RoomShape** preview images from IsaacDocs for all 12 shapes.
@@ -138,11 +143,11 @@ The tracker uses a top-left **tracker anchor** for its shape geometry. For some 
 Runtime visual sources are intentionally small and explicit:
 
 - **IsaacDocs** pinned RoomShape previews for room silhouettes.
-- **Local MiniMAPI-derived atlas** for room, pickup and structure icons.
+- **Local MiniMAPI-derived atlas** for room, pickup and structure icons. All 88 audited icons are reachable at runtime.
 - The three **local paper-menu PNGs** supplied for this tracker.
 - Web-loaded PF Tempesta Seven and Upheaval fonts.
 
-See [`ASSETS.md`](./ASSETS.md) for exact runtime provenance. `ICON_AUDIT.md` records how every uploaded icon was interpreted and whether it is currently surfaced.
+See [`ASSETS.md`](./ASSETS.md) for exact runtime provenance. `ICON_AUDIT.md` records how every uploaded icon was interpreted and where it is surfaced.
 
 ## GitHub Pages
 

@@ -25,19 +25,9 @@ const VERTICAL_CLOSET_SHAPES: readonly RoomShapeId[] = ['1x1', 'IV'];
  * RoomType -> RoomShape validity for vanilla/Repentance+ layouts.
  *
  * Keep this table deliberately data-driven rather than treating every special
- * room as a normal room. Evidence used when defining the non-1x1 exceptions:
- *
- * - Planetarium has dedicated 1x1, IH and IV backdrop variants and the wiki
- *   explicitly documents closet-sized Planetarium layouts.
- * - Library has a documented closet-sized layout; the vanilla layout is the
- *   vertical closet form (IV).
- * - Arcade has vanilla narrow vertical layouts in addition to standard 1x1.
- * - Boss rooms retain the large rectangular arenas already supported here.
- * - Black Market is the canonical two-rooms-wide special room.
- *
- * Curse, Challenge/Boss Challenge, Sacrifice, Dice and Bedroom layouts in the
- * vanilla room pools are standard 1x1 rooms. They must not inherit arbitrary
- * L/large shapes simply because those shapes exist for normal rooms.
+ * room as a normal room. The seven additional MiniMAPI room concepts exposed
+ * by the tracker are represented as single rooms: Dirty Bedroom, Chest Room,
+ * Mirror Room, Rails Room, Red/Silver Treasure Rooms and Teleporter Room.
  */
 export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]> = {
   normal: ALL_SHAPES,
@@ -58,6 +48,13 @@ export const ROOM_TYPE_ALLOWED_SHAPES: Record<RoomTypeId, readonly RoomShapeId[]
   dice: SINGLE_ROOM,
   planetarium: PLANETARIUM_SHAPES,
   bedroom: SINGLE_ROOM,
+  'dirty-bedroom': SINGLE_ROOM,
+  'chest-room': SINGLE_ROOM,
+  mirror: SINGLE_ROOM,
+  rails: SINGLE_ROOM,
+  'red-treasure': SINGLE_ROOM,
+  'silver-treasure': SINGLE_ROOM,
+  teleporter: SINGLE_ROOM,
   devil: SINGLE_ROOM,
   angel: SINGLE_ROOM,
   'black-market': BLACK_MARKET_SHAPES,

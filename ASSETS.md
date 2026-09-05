@@ -26,6 +26,8 @@ The app uses the 1:1 PNGs supplied for this project. Those PNGs were extracted f
 
 The local atlas is `120×108` and stores each source icon unmodified inside a `12×12` cell. Runtime rendering only uses **integer scaling** with `image-rendering: pixelated`; icons are never stretched independently on X/Y, blurred, or resampled to a different aspect ratio.
 
+All **88 audited icons are reachable at runtime**: 42 pickup/chest sprites, 30 room sprites and 16 structure/machine sprites. The room palette now exposes every room drawing present in the atlas, including Dirty Bedroom (`R_BARREN`), Chest Room (`R_CHEST`), Mirror Room (`R_MIRROR`), Rails Room (`R_RAILS`), Red Treasure (`R_RTREASURE`), Silver Treasure (`R_STREASURE`) and Teleporter Room (`R_TELEPORTER`). `R_CRAWLSPACE` is used for Secret Exit and `R_UNKNOWN` for Other.
+
 To avoid any possible atlas-edge sampling on the tiniest structure sprites, the following re-supplied source PNGs are also vendored individually and rendered directly:
 
 ```text
@@ -41,9 +43,7 @@ src/assets/minimap-icons/S_DRESSER.png
 
 These direct files are still scaled only by integer nearest-neighbour factors. No runtime tint, hue rotation, opacity change or blend mode is applied to them.
 
-Runtime room mappings include Normal/Start, Shop, Treasure, Boss/Miniboss, Secret/Super Secret/Ultra Secret, Arcade, Curse, Challenge/Boss Challenge, Library, Sacrifice, Dice, Planetarium, Bedroom, Devil/Angel and I AM ERROR. Blue and Red rooms reuse `R_NORMAL` with the existing colour treatment; Black Market reuses `R_SHOP` with its dark red/black treatment.
-
-The contents selector exposes the associated pickup and structure sprites from the uploaded set. Chest `*ALT` images are used as the small on-map representation of their corresponding chest while the primary image is used in controls/list rows.
+Blue and Red rooms deliberately reuse `R_NORMAL` with the existing colour treatment; Black Market reuses `R_SHOP` with its dark red/black treatment. The contents selector exposes the associated pickup and structure sprites from the uploaded set. Chest `*ALT` images are used as the small on-map representation of their corresponding chest while the primary image is used in controls/list rows.
 
 ## Tracker app icon
 
