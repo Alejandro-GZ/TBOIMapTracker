@@ -53,7 +53,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     >
       <RoomShapeSprite shape={room.shape} />
       <span className="map-room-type-icon">
-        <RoomTypeSprite type={room.type} scale={3} />
+        <RoomTypeSprite type={room.type} fitSize={32} />
       </span>
       <RoomPickupLayer pickups={room.pickups} />
     </div>
