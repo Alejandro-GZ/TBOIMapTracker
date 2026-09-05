@@ -14,19 +14,15 @@ export const MINIMAP_ROOM_SHEET = `${MINIMAP_API_RAW}/custom_minimap2.png`;
 
 const ICON_SHEET_WIDTH = 128;
 const ICON_SHEET_HEIGHT = 160;
-const ICON_FRAME_SIZE = 16;
 const ROOM_SHEET_WIDTH = 144;
 const ROOM_SHEET_HEIGHT = 64;
 
-type SpriteFrame = Readonly<{ x: number; y: number }>;
-type RoomShapeFrame = Readonly<{
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}>;
+type SpriteFrame = Readonly<{ x: number; y: number; width: number; height: number }>;
+type IconFrame = Readonly<{ x: number; y: number }>;
 
-const ROOM_FRAMES: Partial<Record<RoomTypeId, SpriteFrame>> = {
+const iconFrame = (x: number, y: number): SpriteFrame => ({ x, y, width: 16, height: 16 });
+
+const ROOM_FRAMES: Partial<Record<RoomTypeId, IconFrame>> = {
   shop: { x: 0, y: 0 },
   secret: { x: 16, y: 0 },
   'super-secret': { x: 32, y: 0 },
@@ -47,7 +43,7 @@ const ROOM_FRAMES: Partial<Record<RoomTypeId, SpriteFrame>> = {
   'ultra-secret': { x: 112, y: 32 },
 };
 
-const PICKUP_FRAMES: Partial<Record<PickupKind, SpriteFrame>> = {
+const PICKUP_FRAMES: Partial<Record<PickupKind, IconFrame>> = {
   heart: { x: 64, y: 48 },
   coin: { x: 80, y: 48 },
   key: { x: 96, y: 48 },
@@ -62,7 +58,7 @@ const PICKUP_FRAMES: Partial<Record<PickupKind, SpriteFrame>> = {
 };
 
 /** Frame order follows Isaac's RoomShape enum, as described by custom_minimap2.anm2. */
-const ROOM_SHAPE_FRAMES: Record<RoomShapeId, RoomShapeFrame> = {
+const ROOM_SHAPE_FRAMES: Record<RoomShapeId, SpriteFrame> = {
   '1x1': { x: 0, y: 48, width: 18, height: 16 },
   IH: { x: 18, y: 48, width: 18, height: 16 },
   IV: { x: 36, y: 48, width: 18, height: 16 },
@@ -77,55 +73,97 @@ const ROOM_SHAPE_FRAMES: Record<RoomShapeId, RoomShapeFrame> = {
   LBR: { x: 108, y: 32, width: 36, height: 32 },
 };
 
-interface IsaacSpriteProps {
-  frame?: SpriteFrame;
-  fallback: string;
+interface SpriteSheetFrameProps {
+  sheet: string;
+  sheetWidth: number;
+  sheetHeight: number;
+  frame: SpriteFrame;
   scale?: number;
   className?: string;
 }
 
-export function IsaacSprite({ frame, fallback, scale = 1, className = '' }: IsaacSpriteProps) {
+/**
+ * Render one sprite frame using an SVG viewport local to the frame.
+ *
+ * Moving the sheet by -frame.x/-frame.y and clipping to a 0-based viewBox is
+ * intentionally different from using a shifted viewBox over the whole sheet:
+ * it guarantees pixels outside the selected frame can never bleed into the UI.
+ */
+function SpriteSheetFrame({
+  sheet,
+  sheetWidth,
+  sheetHeight,
+  frame,
+  scale = 1,
+  className = '',
+}: SpriteSheetFrameProps) {
+  return (
+    <svg
+      className={`isaac-sprite ${className}`.trim()}
+      width={frame.width * scale}
+      height={frame.height * scale}
+      viewBox={`0 0 ${frame.width} ${frame.height}`}
+      preserveAspectRatio="none"
+      overflow="hidden"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <image
+        href={sheet}
+        x={-frame.x}
+        y={-frame.y}
+        width={sheetWidth}
+        height={sheetHeight}
+        preserveAspectRatio="none"
+        style={{ imageRendering: 'pixelated' } as CSSProperties}
+      />
+    </svg>
+  );
+}
+
+interface IsaacSpriteProps {
+  frame?: IconFrame;
+  fallback?: string;
+  scale?: number;
+  className?: string;
+}
+
+export function IsaacSprite({ frame, fallback = '', scale = 1, className = '' }: IsaacSpriteProps) {
   if (!frame) {
+    if (!fallback) return null;
     return (
-      <span className={`isaac-sprite isaac-sprite-fallback ${className}`.trim()} aria-hidden="true">
+      <span
+        className={`isaac-sprite-fallback ${className}`.trim()}
+        style={{ width: 16 * scale, height: 16 * scale }}
+        aria-hidden="true"
+      >
         {fallback}
       </span>
     );
   }
 
-  const style: CSSProperties = {
-    width: ICON_FRAME_SIZE * scale,
-    height: ICON_FRAME_SIZE * scale,
-    backgroundImage: `url("${MINIMAP_ICON_SHEET}")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: `${ICON_SHEET_WIDTH * scale}px ${ICON_SHEET_HEIGHT * scale}px`,
-    backgroundPosition: `${-frame.x * scale}px ${-frame.y * scale}px`,
-    imageRendering: 'pixelated',
-  };
-
-  return <span className={`isaac-sprite ${className}`.trim()} style={style} aria-hidden="true" />;
+  return (
+    <SpriteSheetFrame
+      sheet={MINIMAP_ICON_SHEET}
+      sheetWidth={ICON_SHEET_WIDTH}
+      sheetHeight={ICON_SHEET_HEIGHT}
+      frame={iconFrame(frame.x, frame.y)}
+      scale={scale}
+      className={className}
+    />
+  );
 }
 
 export function RoomShapeSprite({ shape }: { shape: RoomShapeId }) {
-  const frame = ROOM_SHAPE_FRAMES[shape];
-
   return (
-    <svg
+    <SpriteSheetFrame
+      sheet={MINIMAP_ROOM_SHEET}
+      sheetWidth={ROOM_SHEET_WIDTH}
+      sheetHeight={ROOM_SHEET_HEIGHT}
+      frame={ROOM_SHAPE_FRAMES[shape]}
       className={`isaac-room-shape isaac-room-shape-${shape}`}
-      viewBox={`${frame.x} ${frame.y} ${frame.width} ${frame.height}`}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <image
-        href={MINIMAP_ROOM_SHEET}
-        x="0"
-        y="0"
-        width={ROOM_SHEET_WIDTH}
-        height={ROOM_SHEET_HEIGHT}
-        preserveAspectRatio="none"
-      />
-    </svg>
+    />
   );
 }
 
@@ -136,14 +174,16 @@ export function RoomTypeSprite({
   className,
 }: {
   type: RoomTypeId;
-  fallback: string;
+  fallback?: string;
   scale?: number;
   className?: string;
 }) {
+  // Vanilla normal/start rooms do not need an extra glyph in the minimap.
+  const effectiveFallback = type === 'normal' || type === 'start' ? '' : fallback;
   return (
     <IsaacSprite
       frame={ROOM_FRAMES[type]}
-      fallback={fallback}
+      fallback={effectiveFallback}
       scale={scale}
       className={className}
     />
@@ -157,7 +197,7 @@ export function PickupSprite({
   className,
 }: {
   kind: PickupKind;
-  fallback: string;
+  fallback?: string;
   scale?: number;
   className?: string;
 }) {
