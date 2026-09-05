@@ -9,6 +9,12 @@ interface MapRoomVisualProps {
   selected: boolean;
 }
 
+const roomArtScale = (width: number, height: number) => {
+  if (width === 1 && height === 1) return 1.16;
+  if (width === 1 || height === 1) return 1.08;
+  return 1.02;
+};
+
 export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const bounds = getShapeBounds(room.shape);
   const center = getShapeVisualCenter(room.shape);
@@ -18,6 +24,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     gridRow: `${room.anchor.y + 1} / span ${bounds.height}`,
     '--room-icon-x': `${(center.x / bounds.width) * 100}%`,
     '--room-icon-y': `${(center.y / bounds.height) * 100}%`,
+    '--room-art-scale': roomArtScale(bounds.width, bounds.height),
   } as CSSProperties;
 
   return (
@@ -31,7 +38,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     >
       <RoomShapeSprite shape={room.shape} />
       <span className="map-room-type-icon">
-        <RoomTypeSprite type={room.type} />
+        <RoomTypeSprite type={room.type} scale={2} />
       </span>
       <RoomPickupLayer pickups={room.pickups} />
     </div>

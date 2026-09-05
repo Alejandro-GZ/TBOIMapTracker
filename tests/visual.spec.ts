@@ -17,17 +17,27 @@ async function waitForArt(page: Page) {
   });
 }
 
-async function dragCells(page: Page, from: [number, number], to: [number, number]) {
-  const start = page.getByTestId(`map-cell-${from[0]}-${from[1]}`);
-  const end = page.getByTestId(`map-cell-${to[0]}-${to[1]}`);
-  const startBox = await start.boundingBox();
-  const endBox = await end.boundingBox();
-  if (!startBox || !endBox) throw new Error('Map cell is not visible');
+async function dragPath(page: Page, cells: Array<[number, number]>) {
+  if (cells.length === 0) throw new Error('Drag path needs at least one cell');
 
-  await page.mouse.move(startBox.x + startBox.width / 2, startBox.y + startBox.height / 2);
+  const boxes = [];
+  for (const [x, y] of cells) {
+    const box = await page.getByTestId(`map-cell-${x}-${y}`).boundingBox();
+    if (!box) throw new Error(`Map cell ${x},${y} is not visible`);
+    boxes.push(box);
+  }
+
+  const first = boxes[0];
+  await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
   await page.mouse.down();
-  await page.mouse.move(endBox.x + endBox.width / 2, endBox.y + endBox.height / 2, { steps: 8 });
+  for (const box of boxes.slice(1)) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
+  }
   await page.mouse.up();
+}
+
+async function dragCells(page: Page, from: [number, number], to: [number, number]) {
+  await dragPath(page, [from, to]);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -54,7 +64,8 @@ test('builds a representative floor through the real UI and captures it', async 
   await page.getByTestId('room-tool-normal').click();
   await dragCells(page, [2, 2], [3, 2]);
   await dragCells(page, [9, 2], [9, 3]);
-  await dragCells(page, [1, 9], [2, 10]);
+  await dragPath(page, [[1, 9], [2, 9], [2, 10], [1, 10]]);
+  await dragPath(page, [[9, 9], [10, 9], [10, 10]]);
 
   await waitForArt(page);
 
@@ -65,9 +76,15 @@ test('builds a representative floor through the real UI and captures it', async 
   );
   expect(shapeSources.every((src) => src.includes(`wofsauge/IsaacDocs/${DOCS_REVISION}`))).toBeTruthy();
 
-  const treasureIcon = page.locator('img[data-isaac-room-type="treasure"]').first();
+  const treasureIcon = page.locator('.map-room-visual[data-room-type="treasure"] img[data-isaac-room-type="treasure"]');
   await expect(treasureIcon).toBeVisible();
   expect(await treasureIcon.getAttribute('src')).toContain('/roomtypes/4.png');
+  const treasureIconBox = await treasureIcon.boundingBox();
+  expect(treasureIconBox?.width ?? 0).toBeGreaterThanOrEqual(30);
+
+  const horizontalShape = page.locator('[data-room-shape="2x1"] .isaac-room-shape').first();
+  await expect(horizontalShape).toHaveCSS('object-fit', 'contain');
+  await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
 
   await expect(page.getByTestId('room-pickup-layer')).toBeVisible();
   await expect(page.getByTestId('map-door-layer')).toBeVisible();
@@ -98,7 +115,7 @@ test('builds a representative floor through the real UI and captures it', async 
   });
 });
 
-test('dragging cells creates the requested rectangular Isaac footprints', async ({ page }) => {
+test('dragging cells creates rectangular and L Isaac footprints', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
 
   await dragCells(page, [1, 1], [2, 1]);
@@ -107,8 +124,11 @@ test('dragging cells creates the requested rectangular Isaac footprints', async 
   await dragCells(page, [10, 1], [10, 2]);
   await expect(page.locator('[data-room-shape="1x2"]')).toHaveCount(1);
 
-  await dragCells(page, [1, 10], [2, 11]);
+  await dragPath(page, [[1, 10], [2, 10], [2, 11], [1, 11]]);
   await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
+
+  await dragPath(page, [[8, 9], [9, 9], [9, 10]]);
+  await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
 });
 
 test('corridor and L shapes use the canonical preview selected through the inspector', async ({ page }) => {

@@ -85,19 +85,99 @@ export const isInsideGrid = ({ x, y }: GridPoint) =>
 
 export const gridIndex = ({ x, y }: GridPoint) => y * GRID_SIZE + x;
 
+export type DragRoomShape = Extract<
+  RoomShapeId,
+  '1x1' | '1x2' | '2x1' | '2x2' | 'LTL' | 'LTR' | 'LBL' | 'LBR'
+>;
+
 export interface DragRoomPlacement {
   anchor: GridPoint;
-  shape: Extract<RoomShapeId, '1x1' | '1x2' | '2x1' | '2x2'>;
+  shape: DragRoomShape;
   width: number;
   height: number;
 }
 
+const uniqueDragPoints = (points: GridPoint[]) => {
+  const seen = new Set<string>();
+  const unique: GridPoint[] = [];
+  for (const point of points) {
+    const key = coordinateKey(point);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(point);
+  }
+  return unique;
+};
+
 /**
- * Rooms created directly on the map use Isaac's rectangular room footprints.
- * A click creates 1×1; dragging one cell horizontally/vertically creates 2×1
- * or 1×2; dragging a 2×2 rectangle creates 2×2. Corridor and L variants stay
- * available in the inspector because their topology cannot be inferred from a
- * rectangular pointer gesture without adding an ambiguous interaction mode.
+ * Infer an Isaac room footprint from the cells the pointer actually travelled
+ * through. Three occupied cells in a 2×2 box become the matching L variant;
+ * visiting all four cells becomes a 2×2. A direct diagonal from one corner to
+ * the other also remains a convenient 2×2 gesture when no intermediate cell
+ * was entered by the pointer.
+ */
+export const getDragRoomPlacementFromPath = (points: GridPoint[]): DragRoomPlacement | null => {
+  const unique = uniqueDragPoints(points);
+  if (unique.length === 0 || unique.length > 4) return null;
+
+  const minX = Math.min(...unique.map((point) => point.x));
+  const maxX = Math.max(...unique.map((point) => point.x));
+  const minY = Math.min(...unique.map((point) => point.y));
+  const maxY = Math.max(...unique.map((point) => point.y));
+  const width = maxX - minX + 1;
+  const height = maxY - minY + 1;
+
+  if (width > 2 || height > 2) return null;
+
+  const anchor = { x: minX, y: minY };
+  const keys = new Set(unique.map(coordinateKey));
+
+  if (unique.length === 1) {
+    return { anchor, shape: '1x1', width: 1, height: 1 };
+  }
+
+  if (unique.length === 2) {
+    if (width === 2 && height === 1) return { anchor, shape: '2x1', width, height };
+    if (width === 1 && height === 2) return { anchor, shape: '1x2', width, height };
+    if (width === 2 && height === 2) return { anchor, shape: '2x2', width, height };
+    return null;
+  }
+
+  if (unique.length === 3 && width === 2 && height === 2) {
+    const topLeft = coordinateKey({ x: minX, y: minY });
+    const topRight = coordinateKey({ x: maxX, y: minY });
+    const bottomLeft = coordinateKey({ x: minX, y: maxY });
+    const bottomRight = coordinateKey({ x: maxX, y: maxY });
+
+    const shape: DragRoomShape | null = !keys.has(topLeft)
+      ? 'LTL'
+      : !keys.has(topRight)
+        ? 'LTR'
+        : !keys.has(bottomLeft)
+          ? 'LBL'
+          : !keys.has(bottomRight)
+            ? 'LBR'
+            : null;
+
+    return shape ? { anchor, shape, width, height } : null;
+  }
+
+  if (unique.length === 4 && width === 2 && height === 2) {
+    const coversWholeBox = [
+      { x: minX, y: minY },
+      { x: maxX, y: minY },
+      { x: minX, y: maxY },
+      { x: maxX, y: maxY },
+    ].every((point) => keys.has(coordinateKey(point)));
+    return coversWholeBox ? { anchor, shape: '2x2', width, height } : null;
+  }
+
+  return null;
+};
+
+/**
+ * Backwards-compatible rectangular helper used by existing callers/tests.
+ * New pointer UI uses `getDragRoomPlacementFromPath` so it can express L rooms.
  */
 export const getDragRoomPlacement = (
   start: GridPoint,
@@ -110,15 +190,13 @@ export const getDragRoomPlacement = (
 
   if (width > 2 || height > 2) return null;
 
-  const shape = (
-    width === 1 && height === 1
-      ? '1x1'
-      : width === 1
-        ? '1x2'
-        : height === 1
-          ? '2x1'
-          : '2x2'
-  ) as DragRoomPlacement['shape'];
+  const shape: DragRoomShape = width === 1 && height === 1
+    ? '1x1'
+    : width === 1
+      ? '1x2'
+      : height === 1
+        ? '2x1'
+        : '2x2';
 
   return {
     anchor: { x: minX, y: minY },
