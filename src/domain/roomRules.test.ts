@@ -6,23 +6,26 @@ const ALL_SHAPES = [
 ];
 
 describe('room shape rules', () => {
-  it('keeps flexible layout rooms unrestricted', () => {
-    for (const type of [
-      'normal',
-      'other',
-      'arcade',
-      'curse',
-      'challenge',
-      'boss-challenge',
-      'library',
-      'sacrifice',
-      'dice',
-      'planetarium',
-      'bedroom',
-    ] as const) {
-      expect(getAllowedRoomShapes(type)).toEqual(ALL_SHAPES);
-      expect(isRoomShapeAllowed(type, 'LTL')).toBe(true);
-    }
+  it('keeps normal and other rooms unrestricted', () => {
+    expect(getAllowedRoomShapes('normal')).toEqual(ALL_SHAPES);
+    expect(getAllowedRoomShapes('other')).toEqual(ALL_SHAPES);
+  });
+
+  it('uses the three vanilla Planetarium shapes', () => {
+    expect(getAllowedRoomShapes('planetarium')).toEqual(['1x1', 'IH', 'IV']);
+    expect(isRoomShapeAllowed('planetarium', 'IH')).toBe(true);
+    expect(isRoomShapeAllowed('planetarium', 'IV')).toBe(true);
+    expect(isRoomShapeAllowed('planetarium', '1x2')).toBe(false);
+    expect(isRoomShapeAllowed('planetarium', 'LTL')).toBe(false);
+  });
+
+  it('keeps the documented closet variants for Arcade and Library', () => {
+    expect(getAllowedRoomShapes('arcade')).toEqual(['1x1', 'IV']);
+    expect(getAllowedRoomShapes('library')).toEqual(['1x1', 'IV']);
+    expect(isRoomShapeAllowed('arcade', 'IV')).toBe(true);
+    expect(isRoomShapeAllowed('library', 'IV')).toBe(true);
+    expect(isRoomShapeAllowed('arcade', 'IH')).toBe(false);
+    expect(isRoomShapeAllowed('library', '2x1')).toBe(false);
   });
 
   it('allows regular, double and 2x2 boss rooms but rejects corridor/L variants', () => {
@@ -45,13 +48,19 @@ describe('room shape rules', () => {
     'secret',
     'super-secret',
     'ultra-secret',
+    'curse',
+    'challenge',
+    'boss-challenge',
+    'sacrifice',
+    'dice',
+    'bedroom',
     'devil',
     'angel',
     'error',
     'blue',
     'red',
     'secret-exit',
-  ] as const)('keeps %s at 1x1', (type) => {
+  ] as const)('keeps %s at its vanilla 1x1 footprint', (type) => {
     expect(getAllowedRoomShapes(type)).toEqual(['1x1']);
     expect(isRoomShapeAllowed(type, '2x1')).toBe(false);
   });
