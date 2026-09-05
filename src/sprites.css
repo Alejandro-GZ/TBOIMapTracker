@@ -22,101 +22,45 @@
   line-height: 1;
 }
 
-/* Match the 18×16 aspect ratio used by MiniMAPI's large-map room frames. */
-.grid-cell {
-  aspect-ratio: 18 / 16;
-}
-
-.grid-cell.occupied {
-  background: #151310;
-  border-color: #302b26;
-}
-
-.grid-cell.occupied:not(.selected) {
-  box-shadow: inset 0 0 0 1px #1b1815;
-}
-
-.grid-cell.room-primary {
+.map-room-visual {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
   z-index: 2;
 }
 
-.grid-cell.selected.room-primary {
+.map-room-visual .isaac-room-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.map-room-type-icon {
+  position: absolute;
+  left: var(--room-icon-x);
+  top: var(--room-icon-y);
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+}
+
+.map-room-visual.unvisited {
+  opacity: .68;
+}
+
+.map-room-visual.selected {
   z-index: 4;
 }
 
-.isaac-room-shape {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+.map-room-visual.selected .isaac-room-shape {
+  filter: brightness(1.28);
 }
 
-.isaac-room-shape-1x2,
-.isaac-room-shape-IIV {
-  height: calc(200% + 3px);
-}
-
-.isaac-room-shape-2x1,
-.isaac-room-shape-IIH {
-  width: calc(200% + 3px);
-}
-
-.isaac-room-shape-2x2,
-.isaac-room-shape-LTL,
-.isaac-room-shape-LTR,
-.isaac-room-shape-LBL,
-.isaac-room-shape-LBR {
-  width: calc(200% + 3px);
-  height: calc(200% + 3px);
-}
-
-/* LTL's first occupied tracker cell is the top-right cell because its
-   top-left anchor is the missing quadrant. Shift its 2×2 artwork left. */
-.isaac-room-shape-LTL {
-  left: calc(-100% - 3px);
-}
-
-.room-mark {
-  inset: auto;
-  left: 0;
-  top: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-
-.room-mark-1x2,
-.room-mark-IIV {
-  height: calc(200% + 3px);
-}
-
-.room-mark-2x1,
-.room-mark-IIH {
-  width: calc(200% + 3px);
-}
-
-.room-mark-2x2,
-.room-mark-LTL,
-.room-mark-LTR,
-.room-mark-LBL,
-.room-mark-LBR {
-  width: calc(200% + 3px);
-  height: calc(200% + 3px);
-}
-
-.room-mark-LTL {
-  left: calc(-100% - 3px);
-}
-
-.map-room-sprite {
-  /* Deliberately no CSS filter: blur/drop-shadow makes nearest-neighbor art muddy. */
-  filter: none;
+.map-room-visual.selected .map-room-type-icon {
+  transform: translate(-50%, -50%) scale(1.06);
 }
 
 .room-tool-icon,
@@ -125,32 +69,19 @@
   overflow: hidden;
 }
 
-.room-tool-icon .isaac-sprite,
-.type-chip .isaac-sprite,
-.quick-pickups .isaac-sprite,
-.pickup-icon .isaac-sprite {
-  filter: none;
-}
-
-.room-tool-icon {
+.room-tool-icon,
+.type-chip,
+.quick-pickups strong,
+.pickup-icon {
   display: grid;
-  place-items: center;
-}
-
-.type-chip {
-  display: inline-grid;
   place-items: center;
 }
 
 .quick-pickups strong {
-  display: grid;
-  place-items: center;
   min-height: 20px;
 }
 
 .pickup-icon {
   width: 24px;
   height: 24px;
-  display: grid;
-  place-items: center;
 }
