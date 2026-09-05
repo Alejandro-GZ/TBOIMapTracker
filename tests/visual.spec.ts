@@ -149,7 +149,7 @@ test('uses the requested main-only chrome, icon variants and grid layering', asy
   await waitForArt(page);
   const normalIcon = page.locator('.map-room-visual[data-room-type="normal"] img[data-isaac-room-type="normal"]').first();
   await expect(normalIcon).toBeVisible();
-  expect(await normalIcon.getAttribute('src')).toContain('/roomtypes/1.png');
+  expect(await normalIcon.getAttribute('src')).toContain('room-default');
 
   await page.getByTestId('room-tool-error').click();
   await page.getByTestId('map-cell-3-1').click();
@@ -160,7 +160,7 @@ test('uses the requested main-only chrome, icon variants and grid layering', asy
   await waitForArt(page);
   const blueIcon = page.locator('.map-room-visual[data-room-type="blue"] img[data-isaac-room-type="blue"]');
   await expect(blueIcon).toHaveClass(/isaac-room-type-blue/);
-  expect(await blueIcon.getAttribute('src')).toContain('/roomtypes/1.png');
+  expect(await blueIcon.getAttribute('src')).toContain('room-default');
 
   await page.getByTestId('room-tool-black-market').click();
   await dragCells(page, [8, 1], [9, 1]);
