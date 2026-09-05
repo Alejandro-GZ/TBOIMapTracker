@@ -1,0 +1,333 @@
+/* Isaac-style paper chrome -------------------------------------------------
+ * These menu PNGs are referenced from a pinned public mirror revision. They
+ * are visual chrome only: app state and map interaction remain normal DOM.
+ */
+:root {
+  --isaac-menu-revision: '68228383cc8e4c0f25b73bd163cd4e4828dde0f8';
+  --isaac-paper-large: url('https://raw.githubusercontent.com/clorc/gmaes/68228383cc8e4c0f25b73bd163cd4e4828dde0f8/isaac/assets/sprites/main_menu/AB+/emptyscreen.png');
+  --isaac-paper-small: url('https://raw.githubusercontent.com/clorc/gmaes/68228383cc8e4c0f25b73bd163cd4e4828dde0f8/isaac/assets/sprites/main_menu/AB+/endingsmenupaper.png');
+  --isaac-menu-shadow: url('https://raw.githubusercontent.com/clorc/gmaes/68228383cc8e4c0f25b73bd163cd4e4828dde0f8/isaac/assets/sprites/main_menu/AB+/menushadow.png');
+  --isaac-menu-overlay: url('https://raw.githubusercontent.com/clorc/gmaes/68228383cc8e4c0f25b73bd163cd4e4828dde0f8/isaac/assets/sprites/main_menu/AB+/menuoverlay.png');
+  --paper-ink: #403833;
+  --paper-ink-soft: #73675e;
+  --paper-base: #cbb89a;
+  --paper-base-light: #d7c5a7;
+}
+
+/* The game places UI on loose sheets, not SaaS cards. */
+.panel {
+  position: relative;
+  isolation: isolate;
+  padding: 18px 16px 16px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--paper-ink);
+  background-color: var(--paper-base);
+  background-image: var(--isaac-paper-large);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  box-shadow: none !important;
+  filter: drop-shadow(5px 7px 0 rgba(0, 0, 0, .62));
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .12;
+  background-image: var(--isaac-menu-overlay);
+  background-position: center;
+  background-size: cover;
+  mix-blend-mode: multiply;
+}
+
+.panel,
+.panel h2,
+.panel h3,
+.panel .eyebrow,
+.panel label,
+.panel small,
+.panel p,
+.panel span {
+  color: var(--paper-ink);
+  text-shadow: none;
+}
+
+.panel h2,
+.panel h3 {
+  color: #342d29;
+}
+
+.panel .eyebrow,
+.panel .field-grid label > span,
+.panel .notes-field > span,
+.panel .shape-inspector-section h3 {
+  color: #76695f;
+}
+
+/* Palette buttons behave like handwritten menu lines. */
+.panel button,
+.panel select,
+.panel input,
+.panel textarea {
+  color: var(--paper-ink);
+}
+
+.room-tool,
+.room-shape-option,
+.quick-pickups button,
+.nudge-row button,
+.delete-button {
+  position: relative;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--paper-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.room-tool:hover,
+.room-shape-option:hover,
+.quick-pickups button:hover,
+.nudge-row button:hover {
+  color: #1f1b18 !important;
+  background: rgba(70, 55, 43, .06) !important;
+}
+
+.room-tool.active,
+.room-shape-option.active {
+  color: #1c1815 !important;
+  background: transparent !important;
+  transform: translateX(5px);
+}
+
+.room-tool.active::before,
+.room-shape-option.active::before {
+  content: '▶';
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2f2925;
+  font-family: 'PF Tempesta Seven Condensed', monospace;
+  font-size: 9px;
+}
+
+.room-tool small,
+.tip-card,
+.warning-card,
+.room-facts,
+.pickup-empty,
+.empty-state {
+  color: #796c61 !important;
+}
+
+.tip-card,
+.warning-card {
+  border: 0 !important;
+  border-top: 2px solid rgba(77, 62, 51, .22) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Inspector fields look written onto the sheet rather than embedded widgets. */
+.panel input,
+.panel select,
+.panel textarea,
+.pickup-form input,
+.pickup-form select {
+  border: 0 !important;
+  border-bottom: 2px solid rgba(75, 60, 49, .38) !important;
+  border-radius: 0 !important;
+  color: #352e29 !important;
+  background: rgba(255, 248, 231, .08) !important;
+  box-shadow: none !important;
+}
+
+.panel input::placeholder,
+.panel textarea::placeholder {
+  color: rgba(74, 62, 53, .55) !important;
+}
+
+.panel select option {
+  color: #2b2521;
+  background: #cfbd9f;
+}
+
+/* Header and dimension selector are separate strips of paper pinned over the
+ * dark game background, rather than one dark desktop toolbar. */
+.topbar {
+  margin: 5px 7px 0;
+  padding: 6px 14px;
+  border: 0 !important;
+  color: var(--paper-ink);
+  background-color: var(--paper-base-light) !important;
+  background-image: var(--isaac-paper-small) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 125% !important;
+  box-shadow: none !important;
+  filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, .58));
+}
+
+.topbar .brand strong,
+.topbar .brand span,
+.topbar button,
+.topbar input {
+  color: var(--paper-ink) !important;
+  text-shadow: none !important;
+}
+
+.topbar .brand-mark {
+  color: #332c27;
+  background: transparent !important;
+  border: 2px solid rgba(64, 53, 44, .45) !important;
+  box-shadow: none !important;
+}
+
+.topbar input,
+.top-actions button {
+  border: 0 !important;
+  border-bottom: 2px solid rgba(73, 59, 48, .34) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.top-actions button:hover,
+.top-actions .active-button {
+  color: #191512 !important;
+  background: rgba(68, 51, 39, .08) !important;
+}
+
+.dimension-bar {
+  margin: 0 18px;
+  border: 0 !important;
+  color: var(--paper-ink);
+  background-color: #c8b596 !important;
+  background-image: var(--isaac-paper-small) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 180% !important;
+  box-shadow: none !important;
+  filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .42));
+}
+
+.dimension-bar,
+.dimension-bar button,
+.dimension-bar span,
+.dimension-bar small,
+.dimension-bar b {
+  color: var(--paper-ink) !important;
+}
+
+.dimension-bar button {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dimension-bar button.active {
+  color: #181411 !important;
+  background: rgba(72, 55, 43, .09) !important;
+}
+
+.autosave-state { color: #4d6142 !important; }
+
+/* Map ------------------------------------------------------------------- */
+.map-viewport {
+  border: 0 !important;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(71, 39, 23, .16), transparent 44%),
+    #080502 !important;
+}
+
+/* The in-game large map reads as one object casting a chunky dark shadow. */
+.map-render-layer {
+  z-index: 2 !important;
+  filter:
+    drop-shadow(7px 8px 0 rgba(0, 0, 0, .78))
+    drop-shadow(-3px -2px 0 rgba(0, 0, 0, .46));
+}
+
+.map-door-layer {
+  z-index: 1 !important;
+  filter: drop-shadow(6px 7px 0 rgba(0, 0, 0, .72));
+}
+
+/* Isaac minimap links are short grey necks with a hard black sleeve. */
+.map-door {
+  position: relative;
+  display: block;
+  align-self: center;
+  justify-self: center;
+  padding: 0;
+  border: 0 !important;
+  background: #080706 !important;
+  box-shadow: none !important;
+}
+
+.map-door::after {
+  content: '';
+  position: absolute;
+  background: #686965;
+}
+
+.map-door-right {
+  width: 16px;
+  height: 10px;
+  justify-self: end;
+  transform: translateX(9px);
+}
+
+.map-door-right::after {
+  left: 1px;
+  right: 1px;
+  top: 3px;
+  bottom: 3px;
+}
+
+.map-door-down {
+  width: 10px;
+  height: 16px;
+  align-self: end;
+  transform: translateY(9px);
+}
+
+.map-door-down::after {
+  left: 3px;
+  right: 3px;
+  top: 1px;
+  bottom: 1px;
+}
+
+/* Coordinate labels stay editor affordances; make them handwritten and quiet. */
+.matrix-coordinate {
+  color: #9c9084 !important;
+  text-shadow: 1px 1px #000 !important;
+}
+
+.map-stage-header h2 {
+  color: #d2c5b2 !important;
+}
+
+.map-zoom-controls button {
+  border: 0 !important;
+  color: #c5b7a5 !important;
+  background: transparent !important;
+}
+
+.footer-bar {
+  color: #7e7164;
+  background: #070402 !important;
+  border: 0 !important;
+}
+
+@media (max-width: 930px) {
+  .panel { padding: 14px 11px 12px; }
+  .topbar { margin-left: 3px; margin-right: 3px; }
+  .dimension-bar { margin-left: 8px; margin-right: 8px; }
+}
