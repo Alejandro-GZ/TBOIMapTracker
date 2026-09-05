@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { canPlaceRoom } from '../domain/geometry';
+import { getDefaultRoomShape, isRoomShapeAllowed } from '../domain/roomRules';
 import type {
   DimensionId,
   GridPoint,
@@ -57,7 +58,8 @@ interface TrackerState {
   addRoom: (anchor: GridPoint, shape?: RoomShapeId) => boolean;
   moveRoom: (roomId: string, anchor: GridPoint) => boolean;
   setRoomShape: (roomId: string, shape: RoomShapeId) => boolean;
-  patchRoom: (roomId: string, patch: Partial<Pick<Room, 'type' | 'visited' | 'notes'>>) => void;
+  setRoomType: (roomId: string, type: RoomTypeId) => boolean;
+  patchRoom: (roomId: string, patch: Partial<Pick<Room, 'visited' | 'notes'>>) => void;
   deleteRoom: (roomId: string) => void;
   addPickup: (roomId: string, pickup: Omit<Pickup, 'id'>) => void;
   removePickup: (roomId: string, pickupId: string) => void;
@@ -82,18 +84,33 @@ export const useTrackerStore = create<TrackerState>()(
       showIndices: false,
 
       setActiveDimension: (activeDimension) => set({ activeDimension, selectedRoomId: null }),
-      setPlacementType: (placementType) => set({ placementType }),
-      setPlacementShape: (placementShape) => set({ placementShape }),
+      setPlacementType: (placementType) => {
+        const currentShape = get().placementShape;
+        set({
+          placementType,
+          placementShape: isRoomShapeAllowed(placementType, currentShape)
+            ? currentShape
+            : getDefaultRoomShape(placementType),
+        });
+      },
+      setPlacementShape: (placementShape) => {
+        const placementType = get().placementType;
+        if (!isRoomShapeAllowed(placementType, placementShape)) return;
+        set({ placementShape });
+      },
       setShowIndices: (showIndices) => set({ showIndices }),
       selectRoom: (selectedRoomId) => set({ selectedRoomId }),
 
       addRoom: (anchor, shapeOverride) => {
         const state = get();
         const rooms = state.document.dimensions[state.activeDimension];
+        const shape = shapeOverride ?? state.placementShape;
+        if (!isRoomShapeAllowed(state.placementType, shape)) return false;
+
         const room: Room = {
           id: id(),
           anchor,
-          shape: shapeOverride ?? state.placementShape,
+          shape,
           type: state.placementType,
           visited: false,
           notes: '',
@@ -138,7 +155,7 @@ export const useTrackerStore = create<TrackerState>()(
         const state = get();
         const rooms = state.document.dimensions[state.activeDimension];
         const current = rooms.find((room) => room.id === roomId);
-        if (!current) return false;
+        if (!current || !isRoomShapeAllowed(current.type, shape)) return false;
         const resized = { ...current, shape };
         if (!canPlaceRoom(rooms, resized, roomId)) return false;
 
@@ -148,6 +165,30 @@ export const useTrackerStore = create<TrackerState>()(
             dimensions: {
               ...state.document.dimensions,
               [state.activeDimension]: rooms.map((room) => (room.id === roomId ? resized : room)),
+            },
+          }),
+        });
+        return true;
+      },
+
+      setRoomType: (roomId, type) => {
+        const state = get();
+        const rooms = state.document.dimensions[state.activeDimension];
+        const current = rooms.find((room) => room.id === roomId);
+        if (!current) return false;
+
+        const shape = isRoomShapeAllowed(type, current.shape)
+          ? current.shape
+          : getDefaultRoomShape(type);
+        const changed: Room = { ...current, type, shape };
+        if (!canPlaceRoom(rooms, changed, roomId)) return false;
+
+        set({
+          document: withTouchedDocument({
+            ...state.document,
+            dimensions: {
+              ...state.document.dimensions,
+              [state.activeDimension]: rooms.map((room) => (room.id === roomId ? changed : room)),
             },
           }),
         });
