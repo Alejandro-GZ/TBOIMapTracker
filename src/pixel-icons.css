@@ -1,0 +1,16 @@
+.minimap-icon-sprite {
+  background: none !important;
+  background-image: none !important;
+  transform: none !important;
+  overflow: hidden !important;
+  line-height: 0;
+}
+
+.minimap-icon-atlas-image {
+  display: block;
+  max-width: none !important;
+  max-height: none !important;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transform: none !important;
+}

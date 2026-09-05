@@ -8,6 +8,7 @@ import './visual-tuning.css';
 import './isaac-paper-ui.css';
 import './custom-menu-frame.css';
 import './main-only-polish.css';
+import './pixel-icons.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
