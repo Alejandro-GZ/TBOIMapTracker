@@ -21,7 +21,7 @@ export function RoomPickupLayer({ pickups }: { pickups: Pickup[] }) {
             kind={pickup.kind}
             iconId={pickup.iconId}
             fallback={PICKUP_META[pickup.kind].icon}
-            scale={2}
+            fitSize={22}
             className="map-pickup-sprite"
             map
           />
