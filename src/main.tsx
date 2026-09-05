@@ -11,6 +11,7 @@ import './main-only-polish.css';
 import './pixel-icons.css';
 import './inspector-v2.css';
 import './room-mark-overrides.css';
+import './header-icon-polish.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
