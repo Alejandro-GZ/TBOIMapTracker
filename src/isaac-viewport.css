@@ -1,0 +1,397 @@
+@import url('https://fonts.cdnfonts.com/css/upheaval');
+@import url('https://fonts.cdnfonts.com/css/pf-tempesta-seven');
+
+/*
+ * Viewport + map interaction layer.
+ * Loaded last so this file intentionally overrides the older dashboard-era
+ * layout rules without coupling map rendering to the rest of the UI.
+ */
+
+:root {
+  font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
+  --isaac-black: #070605;
+  --isaac-deep: #0d0907;
+  --isaac-brown: #21150f;
+  --isaac-bone: #d0c7b8;
+  --isaac-bone-dim: #82786c;
+  --isaac-grid: rgba(127, 117, 104, .18);
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body {
+  overscroll-behavior: none;
+  font-family: 'PF Tempesta Seven Condensed', 'PF Tempesta Seven', 'Courier New', monospace;
+  -webkit-font-smoothing: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  letter-spacing: .025em;
+}
+
+.app-shell {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.topbar {
+  position: relative;
+  top: auto;
+  flex: 0 0 60px;
+  min-height: 60px;
+  height: 60px;
+  padding: 7px 12px;
+  gap: 12px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  font-family: 'Upheaval TT (BRK)', 'Courier New', monospace;
+  font-size: 20px;
+}
+
+.brand strong,
+h2,
+h3 {
+  font-family: 'Upheaval TT (BRK)', 'Courier New', monospace;
+}
+
+.brand span,
+.dimension-label,
+.dimension-bar button b,
+.eyebrow,
+.shape-section label,
+.field-grid label > span,
+.notes-field > span,
+.tip-card strong {
+  font-family: inherit;
+}
+
+.brand strong { font-size: 16px; }
+.brand span { font-size: 8px; }
+
+.run-meta { width: min(610px, 100%); }
+.run-meta input { height: 31px; }
+.top-actions button { min-height: 31px; padding: 5px 8px; }
+
+.dimension-bar {
+  position: relative;
+  top: auto;
+  flex: 0 0 38px;
+  min-height: 38px;
+  height: 38px;
+  padding: 3px 12px;
+  overflow: hidden;
+}
+.dimension-bar button { min-height: 29px; padding: 3px 7px; }
+
+.workspace {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+  padding: 7px;
+  gap: 7px;
+  grid-template-columns: 200px minmax(0, 1fr) 286px;
+}
+
+.panel {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 11px;
+  scrollbar-width: thin;
+  scrollbar-color: #514438 #110e0b;
+}
+
+.panel-heading { margin-bottom: 8px; }
+.palette-group { margin-bottom: 9px; }
+.room-palette-grid { gap: 3px; }
+.room-tool { min-height: 38px; padding: 3px 5px; }
+.room-tool-icon { width: 22px; height: 22px; }
+.room-tool span:nth-child(2) { font-size: 9px; }
+.room-drag-help { margin-top: 9px; }
+.room-drag-help span { line-height: 1.25; }
+
+/* Map viewport ----------------------------------------------------------- */
+.map-stage {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.map-stage-header {
+  flex: 0 0 36px;
+  width: 100%;
+  max-width: none;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 6px 4px;
+  align-items: center;
+}
+
+.map-stage-header .eyebrow { display: none; }
+.map-stage-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #cfc7bb;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.map-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.map-zoom-controls button {
+  height: 25px;
+  min-width: 26px;
+  border: 1px solid #3c332b;
+  border-radius: 0;
+  color: #bcb3a6;
+  background: #0c0a08;
+  cursor: pointer;
+  box-shadow: none;
+  font-size: 12px;
+}
+.map-zoom-controls button:hover { color: #fff9ed; border-color: #75695c; }
+.map-zoom-controls .zoom-value { min-width: 48px; font-size: 9px; }
+
+.map-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 2px solid #15100d;
+  background:
+    radial-gradient(ellipse at 22% 34%, rgba(75, 42, 24, .20), transparent 28%),
+    radial-gradient(ellipse at 72% 68%, rgba(50, 27, 17, .16), transparent 31%),
+    repeating-radial-gradient(circle at 38% 44%, rgba(255,255,255,.012) 0 1px, transparent 1px 7px),
+    var(--isaac-black);
+  box-shadow: inset 0 0 90px #000;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.map-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 44px 15px rgba(0,0,0,.58);
+}
+
+.map-zoom-surface {
+  width: min(96%, calc((100dvh - 170px) * 1.16));
+  max-width: 900px;
+  min-width: 390px;
+  will-change: transform;
+  transition: transform 80ms linear;
+  z-index: 1;
+}
+
+.map-matrix {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-rows: 18px auto;
+  column-gap: 4px;
+  row-gap: 3px;
+}
+
+.axis-corner {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  color: #514940;
+  font-size: 8px;
+  user-select: none;
+}
+
+.map-axis {
+  color: #756c61;
+  font-size: 9px;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.map-axis span { display: grid; place-items: center; }
+
+.map-axis-top {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.map-axis-left {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: repeat(13, minmax(0, 1fr));
+  gap: 4px;
+  height: 100%;
+}
+
+.map-grid-stack {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 234 / 208;
+}
+
+.level-grid,
+.map-render-layer {
+  gap: 4px;
+}
+
+.interaction-grid {
+  height: 100%;
+}
+
+.grid-cell {
+  border: 1px solid transparent;
+  background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.grid-cell.empty:hover {
+  border-color: rgba(203, 195, 181, .24);
+  background: rgba(203, 195, 181, .035);
+  box-shadow: none;
+}
+
+.show-guides .grid-cell {
+  border-color: var(--isaac-grid);
+  background: rgba(120, 108, 95, .018);
+}
+
+.show-guides .grid-cell:hover {
+  border-color: rgba(220, 210, 194, .35);
+  background: rgba(220, 210, 194, .045);
+}
+
+.grid-cell.drag-preview {
+  border-color: rgba(225, 215, 196, .78) !important;
+  background: rgba(205, 194, 174, .14) !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.55) !important;
+}
+
+.grid-cell.drag-preview.drag-invalid {
+  border-color: rgba(177, 72, 61, .9) !important;
+  background: rgba(128, 38, 31, .18) !important;
+}
+
+/* Door stubs closer to the game's large-map look. */
+.connector {
+  z-index: 5;
+  background: #7b7873;
+  border: 2px solid #070605;
+  box-shadow: none;
+}
+.connector-right { width: 9px; height: 8px; right: -8px; top: calc(50% - 4px); }
+.connector-down { width: 8px; height: 9px; bottom: -8px; left: calc(50% - 4px); }
+
+/* Let the real minimap sprite carry the room appearance. */
+.map-room-visual .isaac-room-shape {
+  filter: contrast(1.12) brightness(.84);
+}
+.map-room-visual.unvisited { opacity: .58; }
+.map-room-visual.visited { opacity: 1; }
+.map-room-visual.selected .isaac-room-shape {
+  filter: contrast(1.14) brightness(1.06);
+}
+.map-room-visual.selected::after {
+  content: '';
+  position: absolute;
+  inset: 5%;
+  z-index: 5;
+  pointer-events: none;
+  outline: 1px solid rgba(237, 230, 216, .68);
+}
+.map-room-type-icon { image-rendering: pixelated; }
+.map-room-type-icon .isaac-sprite { image-rendering: pixelated; }
+
+.map-pickup-badge {
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  border: 1px solid #080706;
+  border-radius: 0;
+  color: #090806;
+  background: #c9c7b4;
+  font-size: 8px;
+}
+
+.map-status {
+  flex: 0 0 24px;
+  width: 100%;
+  max-width: none;
+  min-height: 24px;
+  margin: 0;
+  padding: 5px 6px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  color: #766d63;
+  font-size: 8px;
+  white-space: nowrap;
+}
+.map-status-hint { color: #514a43; }
+
+.footer-bar {
+  flex: 0 0 25px;
+  min-height: 25px;
+  height: 25px;
+  overflow: hidden;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  font-size: 8px;
+}
+
+/* The page itself never scrolls; dense side panels own their scrollbars. */
+@media (max-width: 1180px) {
+  .workspace { grid-template-columns: 178px minmax(0, 1fr) 260px; }
+  .room-palette-grid { grid-template-columns: 1fr; }
+  .topbar { grid-template-columns: 185px minmax(300px, 1fr) auto; }
+  .footer-note { display: none; }
+}
+
+@media (max-width: 930px) {
+  .workspace { grid-template-columns: 155px minmax(0, 1fr) 225px; gap: 4px; padding: 4px; }
+  .panel { padding: 7px; }
+  .topbar { grid-template-columns: 155px minmax(260px, 1fr) auto; gap: 6px; }
+  .brand span { display: none; }
+  .top-actions button { padding-left: 5px; padding-right: 5px; font-size: 8px; }
+  .map-zoom-surface { min-width: 320px; }
+}

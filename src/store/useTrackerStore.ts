@@ -54,7 +54,7 @@ interface TrackerState {
   setPlacementShape: (shape: RoomShapeId) => void;
   setShowIndices: (show: boolean) => void;
   selectRoom: (roomId: string | null) => void;
-  addRoom: (anchor: GridPoint) => boolean;
+  addRoom: (anchor: GridPoint, shape?: RoomShapeId) => boolean;
   moveRoom: (roomId: string, anchor: GridPoint) => boolean;
   setRoomShape: (roomId: string, shape: RoomShapeId) => boolean;
   patchRoom: (roomId: string, patch: Partial<Pick<Room, 'type' | 'visited' | 'notes'>>) => void;
@@ -87,13 +87,13 @@ export const useTrackerStore = create<TrackerState>()(
       setShowIndices: (showIndices) => set({ showIndices }),
       selectRoom: (selectedRoomId) => set({ selectedRoomId }),
 
-      addRoom: (anchor) => {
+      addRoom: (anchor, shapeOverride) => {
         const state = get();
         const rooms = state.document.dimensions[state.activeDimension];
         const room: Room = {
           id: id(),
           anchor,
-          shape: state.placementShape,
+          shape: shapeOverride ?? state.placementShape,
           type: state.placementType,
           visited: false,
           notes: '',

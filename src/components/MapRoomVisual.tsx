@@ -14,6 +14,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const bounds = getShapeBounds(room.shape);
   const center = getShapeVisualCenter(room.shape);
   const pickupCount = room.pickups.reduce((sum, pickup) => sum + pickup.quantity, 0);
+  const fallback = room.type === 'normal' || room.type === 'start' ? '' : meta.icon;
 
   const style = {
     gridColumn: `${room.anchor.x + 1} / span ${bounds.width}`,
@@ -30,7 +31,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     >
       <RoomShapeSprite shape={room.shape} />
       <span className="map-room-type-icon">
-        <RoomTypeSprite type={room.type} fallback={meta.icon} scale={2} />
+        <RoomTypeSprite type={room.type} fallback={fallback} scale={1} />
       </span>
       {pickupCount > 0 && <span className="pickup-badge map-pickup-badge">{pickupCount}</span>}
     </div>

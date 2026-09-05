@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   canPlaceRoom,
+  getDragRoomPlacement,
   getRoomCells,
   getShapeBounds,
   getShapeVisualCenter,
@@ -39,6 +40,30 @@ describe('Isaac level geometry', () => {
     const center = getShapeVisualCenter('LTL');
     expect(center.x).toBeGreaterThan(1);
     expect(center.y).toBeGreaterThan(1);
+  });
+
+  it('derives rectangular Isaac room shapes from pointer drags in either direction', () => {
+    expect(getDragRoomPlacement({ x: 4, y: 4 }, { x: 4, y: 4 })).toMatchObject({
+      anchor: { x: 4, y: 4 },
+      shape: '1x1',
+    });
+    expect(getDragRoomPlacement({ x: 4, y: 4 }, { x: 5, y: 4 })).toMatchObject({
+      anchor: { x: 4, y: 4 },
+      shape: '2x1',
+    });
+    expect(getDragRoomPlacement({ x: 5, y: 5 }, { x: 5, y: 4 })).toMatchObject({
+      anchor: { x: 5, y: 4 },
+      shape: '1x2',
+    });
+    expect(getDragRoomPlacement({ x: 5, y: 5 }, { x: 4, y: 4 })).toMatchObject({
+      anchor: { x: 4, y: 4 },
+      shape: '2x2',
+    });
+  });
+
+  it('rejects pointer selections larger than Isaac room footprints', () => {
+    expect(getDragRoomPlacement({ x: 3, y: 3 }, { x: 5, y: 3 })).toBeNull();
+    expect(getDragRoomPlacement({ x: 3, y: 3 }, { x: 4, y: 5 })).toBeNull();
   });
 
   it('rejects a 2x2 room that crosses the 13x13 boundary', () => {
