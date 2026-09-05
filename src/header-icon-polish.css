@@ -3,29 +3,71 @@
   transform: translateY(-7px);
 }
 
-.brand-mark {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px;
+/* The Isaac paper sheet already frames the brand. Do not draw a second box
+ * around the Blue Map icon. Match the selector specificity used by
+ * isaac-paper-ui.css so its important border cannot win. */
+.topbar .brand-mark {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px;
   padding: 0 !important;
   border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  filter: none !important;
   transform: none !important;
   overflow: visible;
 }
 
-.brand-mark img {
+.topbar .brand-mark img {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
+/* Give the project name more of the visual weight of an Isaac menu heading,
+ * and lift the brand itself without moving the run fields/actions again. */
+.topbar .brand {
+  transform: translateY(-5px);
+  gap: 9px;
+}
+
+.topbar .brand strong {
+  display: block;
+  font-size: 20px !important;
+  line-height: .95 !important;
+  letter-spacing: .055em !important;
+}
+
+.topbar .brand span {
+  display: block;
+  margin-top: 3px;
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
 @media (max-width: 930px) {
   .top-paper-frame .topbar {
     transform: translateY(-5px);
+  }
+
+  .topbar .brand {
+    transform: translateY(-3px);
+  }
+
+  .topbar .brand strong {
+    font-size: 17px !important;
+  }
+
+  .topbar .brand-mark,
+  .topbar .brand-mark img {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px;
   }
 }
