@@ -6,9 +6,9 @@ import {
   getDragRoomPlacementFromPath,
   getRoomCells,
 } from '../domain/geometry';
+import { isRoomShapeAllowed } from '../domain/roomRules';
 import { GRID_SIZE, type GridPoint } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
-import { MapDoorLayer } from './MapDoorLayer';
 import { MapRoomVisual } from './MapRoomVisual';
 
 interface DragSelection {
@@ -27,11 +27,11 @@ export function MapGrid() {
   const document = useTrackerStore((state) => state.document);
   const activeDimension = useTrackerStore((state) => state.activeDimension);
   const selectedRoomId = useTrackerStore((state) => state.selectedRoomId);
+  const placementType = useTrackerStore((state) => state.placementType);
   const showIndices = useTrackerStore((state) => state.showIndices);
   const addRoom = useTrackerStore((state) => state.addRoom);
   const moveRoom = useTrackerStore((state) => state.moveRoom);
   const selectRoom = useTrackerStore((state) => state.selectRoom);
-  const [notice, setNotice] = useState('Click for 1×1. Drag through cells to draw a room footprint.');
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
@@ -51,13 +51,16 @@ export function MapGrid() {
     const blocked = placement
       ? previewCells.some((point) => occupancy.has(coordinateKey(point)))
       : dragSelection.path.some((point) => occupancy.has(coordinateKey(point)));
+    const disallowedShape = placement
+      ? !isRoomShapeAllowed(placementType, placement.shape)
+      : false;
 
     return {
       keys,
       placement,
-      invalid: !placement || blocked,
+      invalid: !placement || blocked || disallowedShape,
     };
-  }, [dragSelection, occupancy]);
+  }, [dragSelection, occupancy, placementType]);
 
   useEffect(() => {
     const clearDanglingSelection = () => setDragSelection(null);
@@ -97,17 +100,8 @@ export function MapGrid() {
     const placement = getDragRoomPlacementFromPath(path);
     setDragSelection(null);
 
-    if (!placement) {
-      setNotice('Draw 1–4 cells inside a 2×2 footprint. Three cells create the matching L room.');
-      return;
-    }
-
-    const placed = addRoom(placement.anchor, placement.shape);
-    setNotice(
-      placed
-        ? `${placement.shape} room placed at (${placement.anchor.x}, ${placement.anchor.y}).`
-        : 'That room overlaps another room or leaves the 13×13 map.',
-    );
+    if (!placement || !isRoomShapeAllowed(placementType, placement.shape)) return;
+    addRoom(placement.anchor, placement.shape);
   };
 
   const changeZoom = (next: number) => {
@@ -171,13 +165,10 @@ export function MapGrid() {
             event.preventDefault();
             const roomId = event.dataTransfer.getData('text/tboi-room');
             if (!roomId) return;
-            const moved = moveRoom(roomId, point);
-            setNotice(moved ? `Room moved to (${point.x}, ${point.y}).` : 'That move is not possible here.');
+            moveRoom(roomId, point);
           }}
           onClick={() => {
-            if (!room) return;
-            selectRoom(room.id);
-            setNotice(`${meta?.label ?? 'Room'} selected at (${point.x}, ${point.y}).`);
+            if (room) selectRoom(room.id);
           }}
           aria-label={room ? `${meta?.label ?? 'Room'} at ${x}, ${y}` : `Empty cell ${x}, ${y}`}
         >
@@ -222,16 +213,10 @@ export function MapGrid() {
                   <MapRoomVisual key={room.id} room={room} selected={room.id === selectedRoomId} />
                 ))}
               </div>
-              <MapDoorLayer rooms={rooms} />
               <div className="level-grid interaction-grid">{cells}</div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="map-status" role="status">
-        <span>{notice}</span>
-        <span className="map-status-hint">Wheel: zoom · Click: 1×1 · Drag path: 1×2 / 2×1 / 2×2 / L</span>
       </div>
     </section>
   );
