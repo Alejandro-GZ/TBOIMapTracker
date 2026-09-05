@@ -34,6 +34,37 @@
   object-fit: contain;
 }
 
+/* Tracker-only visual variants reuse canonical Isaac room-type art. */
+.isaac-room-type-blue {
+  filter: sepia(.35) saturate(5.5) hue-rotate(163deg) brightness(.82) contrast(1.24);
+}
+
+.isaac-room-type-black-market {
+  filter: sepia(.72) saturate(6.2) hue-rotate(320deg) brightness(.58) contrast(1.42);
+}
+
+.isaac-room-type-text {
+  display: inline-grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #18120f;
+  font-family: 'Upheaval TT (BRK)', 'PF Tempesta Seven Condensed', 'Courier New', monospace;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  image-rendering: pixelated;
+}
+
+.isaac-room-type-start {
+  font-size: calc(9px * var(--isaac-icon-scale));
+}
+
+.isaac-room-type-error {
+  font-size: calc(5.5px * var(--isaac-icon-scale));
+  letter-spacing: calc(-.35px * var(--isaac-icon-scale));
+}
+
 .map-room-visual {
   position: relative;
   min-width: 0;

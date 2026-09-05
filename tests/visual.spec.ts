@@ -110,6 +110,7 @@ test('builds a representative floor through the real UI and captures it', async 
   await expect(page.getByTestId('map-door-layer')).toHaveCount(0);
   await expect(page.locator('.map-status')).toHaveCount(0);
   await expect(page.locator('.room-drag-help')).toHaveCount(0);
+  await expect(page.locator('.dimension-bar')).toHaveCount(0);
 
   const viewportContract = await page.evaluate(() => ({
     innerHeight: window.innerHeight,
@@ -135,6 +136,53 @@ test('builds a representative floor through the real UI and captures it', async 
     fullPage: false,
     animations: 'disabled',
   });
+});
+
+test('uses the requested main-only chrome, icon variants and grid layering', async ({ page }) => {
+  await expect(page.locator('.dimension-bar')).toHaveCount(0);
+
+  const startIcon = page.locator('.map-room-visual[data-room-type="start"] [data-isaac-room-type="start"]');
+  await expect(startIcon).toHaveText('S');
+
+  await page.getByTestId('room-tool-normal').click();
+  await page.getByTestId('map-cell-1-1').click();
+  await waitForArt(page);
+  const normalIcon = page.locator('.map-room-visual[data-room-type="normal"] img[data-isaac-room-type="normal"]').first();
+  await expect(normalIcon).toBeVisible();
+  expect(await normalIcon.getAttribute('src')).toContain('room-default');
+
+  await page.getByTestId('room-tool-error').click();
+  await page.getByTestId('map-cell-3-1').click();
+  await expect(page.locator('.map-room-visual[data-room-type="error"] [data-isaac-room-type="error"]')).toHaveText('ERR');
+
+  await page.getByTestId('room-tool-blue').click();
+  await page.getByTestId('map-cell-5-1').click();
+  await waitForArt(page);
+  const blueIcon = page.locator('.map-room-visual[data-room-type="blue"] img[data-isaac-room-type="blue"]');
+  await expect(blueIcon).toHaveClass(/isaac-room-type-blue/);
+  expect(await blueIcon.getAttribute('src')).toContain('room-default');
+
+  await page.getByTestId('room-tool-black-market').click();
+  await dragCells(page, [8, 1], [9, 1]);
+  await waitForArt(page);
+  const blackMarketIcon = page.locator('.map-room-visual[data-room-type="black-market"] img[data-isaac-room-type="black-market"]');
+  await expect(blackMarketIcon).toHaveClass(/isaac-room-type-black-market/);
+  expect(await blackMarketIcon.getAttribute('src')).toContain('/roomtypes/2.png');
+
+  await page.getByRole('button', { name: 'Grid', exact: true }).click();
+  await expect(page.getByTestId('map-cell-0-0')).toHaveCSS('border-top-style', 'dashed');
+  await expect(page.getByTestId('map-cell-6-6')).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
+
+  const vignette = await page.locator('.app-shell').evaluate((element) => {
+    const style = getComputedStyle(element, '::after');
+    return { background: style.backgroundImage, zIndex: style.zIndex };
+  });
+  expect(vignette.background).toContain('radial-gradient');
+  expect(vignette.zIndex).toBe('20');
+  await expect(page.locator('.palette-panel')).toHaveCSS('z-index', '30');
+
+  const gridButtonColor = await page.getByRole('button', { name: 'Grid', exact: true }).evaluate((element) => getComputedStyle(element).color);
+  expect(gridButtonColor).not.toBe('rgb(169, 160, 149)');
 });
 
 test('dragging cells creates horizontal, vertical and L Isaac footprints for normal rooms', async ({ page }) => {

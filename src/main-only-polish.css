@@ -1,0 +1,71 @@
+/* Final presentation overrides for the single-layer tracker. */
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Isaac-like vignette covers the whole screen but stays below the paper menus. */
+.app-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 48%,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, .03) 34%,
+      rgba(0, 0, 0, .18) 58%,
+      rgba(0, 0, 0, .46) 82%,
+      rgba(0, 0, 0, .70) 100%
+    );
+}
+
+.top-paper-frame,
+.palette-panel,
+.inspector-panel {
+  position: relative;
+  z-index: 30;
+}
+
+/* The viewport keeps only a small local inset; the strong shadow is global. */
+.map-viewport {
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, .24) !important;
+}
+
+.map-viewport::after {
+  box-shadow: none !important;
+}
+
+/* Stronger foreground for the paper-menu actions. */
+.top-paper-frame .top-actions button {
+  color: #6b2b22 !important;
+  text-shadow: none !important;
+}
+
+.top-paper-frame .top-actions button:hover {
+  color: #3b1914 !important;
+}
+
+.top-paper-frame .top-actions .active-button {
+  color: #852f21 !important;
+}
+
+/* The interaction grid stays clickable above the art, but its visible guides
+ * disappear over occupied cells so no line is ever drawn across a room. */
+.show-guides .grid-cell {
+  border-style: dashed;
+  border-color: rgba(138, 91, 62, .34);
+  background: rgba(120, 75, 50, .010);
+}
+
+.show-guides .grid-cell.occupied {
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.grid-cell.drag-preview {
+  border-style: solid;
+}

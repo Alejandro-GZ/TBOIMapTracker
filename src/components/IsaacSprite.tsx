@@ -4,10 +4,12 @@ import type { PickupKind, RoomShapeId, RoomTypeId } from '../domain/types';
 /**
  * Room shapes and room-type icons come from the same preview assets used by
  * IsaacDocs. Pinning the docs revision keeps the map deterministic while still
- * avoiding redistribution of the PNGs in this repository.
+ * avoiding redistribution of most PNGs in this repository. ROOM_DEFAULT is
+ * vendored locally because that preview is not present in the pinned raw docs tree.
  */
 export const ISAAC_DOCS_REVISION = '646e1761addcc236081ad291fee20f3d04bbbf52';
 const ISAAC_DOCS_IMAGES = `https://raw.githubusercontent.com/wofsauge/IsaacDocs/${ISAAC_DOCS_REVISION}/docs/images`;
+const ROOM_DEFAULT_ICON = new URL('../assets/room-default.png', import.meta.url).href;
 
 const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   '1x1': 1,
@@ -24,9 +26,11 @@ const ROOM_SHAPE_VALUES: Record<RoomShapeId, number> = {
   LBR: 12,
 };
 
-/** Values follow RoomType in IsaacDocs. Boss challenge uses the dedicated icon 17. */
+/** Values follow RoomType in IsaacDocs. Some tracker-only room types deliberately
+ * reuse a canonical Isaac icon and recolor it in CSS. */
 const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
   shop: 2,
+  'black-market': 2,
   treasure: 4,
   boss: 5,
   miniboss: 6,
@@ -46,10 +50,21 @@ const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
   'ultra-secret': 29,
 };
 
+const ROOM_TYPE_VARIANT_CLASS: Partial<Record<RoomTypeId, string>> = {
+  blue: 'isaac-room-type-blue',
+  'black-market': 'isaac-room-type-black-market',
+};
+
+const ROOM_TYPE_TEXT: Partial<Record<RoomTypeId, string>> = {
+  start: 'S',
+  error: 'ERR',
+};
+
 export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
   `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
 
 export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
+  if (type === 'normal' || type === 'blue') return ROOM_DEFAULT_ICON;
   const value = ROOM_TYPE_VALUES[type];
   return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
 };
@@ -95,8 +110,27 @@ export function RoomTypeSprite({
   scale?: number;
   className?: string;
 }) {
+  const text = ROOM_TYPE_TEXT[type];
+  if (text) {
+    return (
+      <span
+        className={`isaac-room-type-frame ${className ?? ''}`.trim()}
+        style={{ '--isaac-icon-scale': scale } as CSSProperties}
+      >
+        <span
+          className={`isaac-room-type-text isaac-room-type-${type}`}
+          data-isaac-room-type={type}
+          aria-hidden="true"
+        >
+          {text}
+        </span>
+      </span>
+    );
+  }
+
   const src = getCanonicalRoomTypeUrl(type);
   if (src) {
+    const variantClass = ROOM_TYPE_VARIANT_CLASS[type] ?? '';
     return (
       <span
         className={`isaac-room-type-frame ${className ?? ''}`.trim()}
@@ -104,14 +138,14 @@ export function RoomTypeSprite({
       >
         <CanonicalImage
           src={src}
-          className="isaac-room-type-image"
+          className={`isaac-room-type-image ${variantClass}`.trim()}
           dataAttribute={{ 'data-isaac-room-type': type }}
         />
       </span>
     );
   }
 
-  if (type === 'normal' || type === 'start' || !fallback) return null;
+  if (!fallback) return null;
   return (
     <span className={`isaac-sprite-fallback ${className ?? ''}`.trim()} aria-hidden="true">
       {fallback}
