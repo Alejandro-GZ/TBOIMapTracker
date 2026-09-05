@@ -40,16 +40,16 @@
   min-height: 0;
   pointer-events: none;
   z-index: 2;
-  opacity: .82;
+  opacity: .72;
 }
 
 .map-room-visual.unvisited {
-  opacity: .46;
+  opacity: .42;
 }
 
 .map-room-visual.selected {
   z-index: 4;
-  opacity: 1;
+  opacity: .86;
 }
 
 .map-room-visual .isaac-room-shape {
