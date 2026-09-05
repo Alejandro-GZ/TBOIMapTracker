@@ -37,12 +37,24 @@ References used for the level model:
 - Quick `+1` actions for coins, keys, bombs, hearts, chests and batteries.
 - Generic support for cards, pills, runes, trinkets and collectibles/pedestals.
 - Main / secondary / Death Certificate dimension tabs.
-- Optional raw grid indices.
+- Optional raw grid indices / edit guides.
 - Local autosave through `localStorage`.
 - Import/export of portable `.tboimap.json` files.
 - Responsive desktop/tablet UI.
 - CI with typecheck, tests and production build.
 - GitHub Pages deployment workflow.
+
+## Rendering architecture
+
+The editor deliberately does **not** use Canvas, PixiJS or Konva. The map is small and deterministic enough that native browser primitives are cleaner:
+
+- **React DOM** owns controls, accessibility and the 169 grid hit targets.
+- **CSS Grid** gives both the interaction grid and the visual room layer the same 13 × 13 coordinate system.
+- Every room is rendered **once** in a dedicated visual layer, rather than duplicating artwork inside each occupied cell.
+- **SVG** performs exact spritesheet cropping for room silhouettes and icons. Each sprite uses a local zero-based viewport with the sheet translated underneath it, so pixels outside the selected frame cannot bleed into the map.
+- Multi-cell and L-room icons use the centroid of the actually occupied cells, avoiding the missing quadrant of L shapes.
+
+This keeps room/domain logic independent from rendering and avoids a game-engine dependency for a board with only 169 possible positions.
 
 ## Development
 
