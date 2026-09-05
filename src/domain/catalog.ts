@@ -29,6 +29,7 @@ export const ROOM_TYPES: RoomTypeMeta[] = [
   { id: 'super-secret', label: 'Super secret', icon: '??', tone: 'secret', group: 'hidden' },
   { id: 'ultra-secret', label: 'Ultra secret', icon: '✦', tone: 'ultra', group: 'hidden' },
   { id: 'blue', label: 'Blue room', icon: 'B', tone: 'blue', group: 'hidden' },
+  { id: 'red', label: 'Red room', icon: 'R', tone: 'red', group: 'hidden' },
   { id: 'secret-exit', label: 'Secret exit', icon: '↘', tone: 'secret', group: 'hidden' },
   { id: 'devil', label: 'Devil room', icon: '▼', tone: 'devil', group: 'hidden', offGrid: true },
   { id: 'angel', label: 'Angel room', icon: '△', tone: 'angel', group: 'hidden', offGrid: true },
