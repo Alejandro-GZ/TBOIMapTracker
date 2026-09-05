@@ -7,7 +7,7 @@ Summary:
 - **83 direct semantic associations** to a room, pickup, trinket, machine/structure, or other named game concept.
 - **4 aliases** (`*ALT`) that are alternate map drawings of the same chest entity, not separate wiki entities.
 - **1 placeholder** (`R_UNKNOWN`) that represents an unknown/unrevealed room rather than a distinct room type.
-- **79 icon IDs are currently rendered by the tracker**. Eight additional room icons are identified but are not listed as tracker room types yet; they are documented here for completeness, but are not referenced by `ASSETS.md` as runtime assets.
+- **All 88 icon IDs are currently reachable in the tracker runtime** as room icons, exact contents markers, chest map alternates, or the generic Other/unknown room marker.
 
 Primary references:
 
@@ -17,7 +17,7 @@ Primary references:
 - MiniMAPI source sheet: https://github.com/TazTxUK/MinimapAPI/blob/ca7ecb5a256887963129fa6314e8babb6a3d3cb6/resources/gfx/ui/minimapapi/minimapapi_icons.png
 - MiniMAPI icon data: https://github.com/TazTxUK/MinimapAPI/blob/ca7ecb5a256887963129fa6314e8babb6a3d3cb6/scripts/minimapapi/data.lua
 
-`Runtime` means the icon ID is currently reachable in the app either as a room icon, an exact contents marker, or an on-map alternate.
+`Runtime` means the icon ID is currently reachable in the app either as a room icon, an exact contents marker, an on-map alternate, or the generic Other room marker.
 
 ## Pickups
 
@@ -72,11 +72,11 @@ Primary references:
 |---|---|---|---|
 | `R_ANGEL` | Angel Room | direct | yes |
 | `R_ARCADE` | Arcade | direct | yes |
-| `R_BARREN` | Dirty Bedroom / `ROOM_BARREN` | direct | no — tracker has no separate Dirty Bedroom type |
+| `R_BARREN` | Dirty Bedroom / `ROOM_BARREN` | direct | yes (`Dirty bedroom`) |
 | `R_BCHALLENGE` | Boss Challenge Room | direct | yes |
 | `R_BOSS` | Boss Room | direct | yes |
-| `R_CHEST` | Chest Room / `ROOM_CHEST` | direct | no — not a tracker room type |
-| `R_CRAWLSPACE` | Crawl Space / `ROOM_DUNGEON` | direct | no — not a tracker room type |
+| `R_CHEST` | Chest Room / `ROOM_CHEST` | direct | yes (`Chest room`) |
+| `R_CRAWLSPACE` | Crawl Space / `ROOM_DUNGEON` | direct | yes (`Secret exit`) |
 | `R_CURSE` | Curse Room | direct | yes |
 | `R_DEVIL` | Devil Room | direct | yes |
 | `R_DICE` | Dice Room | direct | yes |
@@ -84,22 +84,22 @@ Primary references:
 | `R_ISAACS` | Clean Bedroom / `ROOM_ISAACS` | direct | yes (`Bedroom`) |
 | `R_LIBRARY` | Library | direct | yes |
 | `R_MINIBOSS` | Miniboss Room | direct | yes |
-| `R_MIRROR` | Mirror Room | direct | no — not a tracker room type |
+| `R_MIRROR` | Mirror Room | direct | yes (`Mirror room`) |
 | `R_NCHALLENGE` | Challenge Room | direct | yes |
 | `R_NORMAL` | Normal/default room / `ROOM_DEFAULT` | direct | yes; also source for Blue/Red recolours |
 | `R_PLANETARIUM` | Planetarium | direct | yes |
-| `R_RAILS` | Mine Cart / rails room | direct | no — not a tracker room type |
-| `R_RTREASURE` | Devil/Red Treasure Room | direct | no — not a tracker room type |
+| `R_RAILS` | Mine Cart / rails room | direct | yes (`Rails room`) |
+| `R_RTREASURE` | Devil/Red Treasure Room | direct | yes (`Red treasure`) |
 | `R_SACRIFICE` | Sacrifice Room | direct | yes |
 | `R_SECRET` | Secret Room | direct | yes |
 | `R_SHOP` | Shop | direct | yes; also source for Black Market recolour |
 | `R_START` | Starting Room | direct | yes |
-| `R_STREASURE` | Silver Treasure Room | direct | no — not a tracker room type |
+| `R_STREASURE` | Silver Treasure Room | direct | yes (`Silver treasure`) |
 | `R_SUPERSECRET` | Super Secret Room | direct | yes |
-| `R_TELEPORTER` | Teleporter Room / `ROOM_TELEPORTER` | direct | no — not a tracker room type |
+| `R_TELEPORTER` | Teleporter Room / `ROOM_TELEPORTER` | direct | yes (`Teleporter room`) |
 | `R_TREASURE` | Treasure Room | direct | yes |
 | `R_ULTRASECRET` | Ultra Secret Room | direct | yes |
-| `R_UNKNOWN` | Unknown/unrevealed room marker | placeholder, not a distinct wiki room | no |
+| `R_UNKNOWN` | Unknown/unrevealed room marker | placeholder, not a distinct wiki room | yes (`Other`) |
 
 Blue and Red rooms deliberately reuse `R_NORMAL` and are recoloured in CSS. Black Market deliberately reuses `R_SHOP` with the existing black/red treatment, because the uploaded set does not include a dedicated Black Market sprite.
 
