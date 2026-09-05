@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
-import { getRoomTypeMeta } from '../domain/catalog';
 import { getShapeBounds, getShapeVisualCenter } from '../domain/geometry';
 import type { Room } from '../domain/types';
 import { RoomShapeSprite, RoomTypeSprite } from './IsaacSprite';
+import { RoomPickupLayer } from './RoomPickupLayer';
 
 interface MapRoomVisualProps {
   room: Room;
@@ -10,11 +10,8 @@ interface MapRoomVisualProps {
 }
 
 export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
-  const meta = getRoomTypeMeta(room.type);
   const bounds = getShapeBounds(room.shape);
   const center = getShapeVisualCenter(room.shape);
-  const pickupCount = room.pickups.reduce((sum, pickup) => sum + pickup.quantity, 0);
-  const fallback = room.type === 'normal' || room.type === 'start' ? '' : meta.icon;
 
   const style = {
     gridColumn: `${room.anchor.x + 1} / span ${bounds.width}`,
@@ -27,13 +24,16 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     <div
       className={`map-room-visual ${selected ? 'selected' : ''} ${room.visited ? 'visited' : 'unvisited'}`}
       style={style}
+      data-testid={`map-room-${room.id}`}
+      data-room-shape={room.shape}
+      data-room-type={room.type}
       aria-hidden="true"
     >
       <RoomShapeSprite shape={room.shape} />
       <span className="map-room-type-icon">
-        <RoomTypeSprite type={room.type} fallback={fallback} scale={1} />
+        <RoomTypeSprite type={room.type} />
       </span>
-      {pickupCount > 0 && <span className="pickup-badge map-pickup-badge">{pickupCount}</span>}
+      <RoomPickupLayer pickups={room.pickups} />
     </div>
   );
 }
