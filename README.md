@@ -10,51 +10,64 @@ Isaac runs often leave useful resources behind: hearts, bombs, keys, chests, car
 
 ## Isaac-aware map model
 
-- The on-grid floor is **13 × 13 cells** (169 grid indices, `0..168`).
-- Main, secondary and Death Certificate dimensions are represented as **separate 13 × 13 grids**, matching the game's dimension model instead of pretending the map is larger.
-- Supports the room shapes exposed by the Repentance API: `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2` and the four L variants.
-- Placement is rejected if a shape would overlap another room or leave the grid.
-- Devil, Angel, Black Market and I AM ERROR can be represented visually, but are flagged in the UI as **off-grid internally**.
-- The default map starts with a Starting Room at the center cell (`6,6`, grid index `84`) for fast manual reconstruction.
+- The on-grid floor is **13 × 13 cells**.
+- Main, secondary and Death Certificate dimensions are represented as separate 13 × 13 grids.
+- Supports `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2` and all four L variants.
+- Placement is rejected if a shape overlaps another room or leaves the grid.
+- Devil, Angel, Black Market and I AM ERROR can be represented visually but are flagged as off-grid internally.
+- A new map starts with the Starting Room at `(6,6)` / grid index `84`.
 
-References used for the level model:
+References:
 
 - https://wofsauge.github.io/IsaacDocs/rep/RoomDescriptor.html
 - https://wofsauge.github.io/IsaacDocs/rep/Level.html
 - https://wofsauge.github.io/IsaacDocs/rep/enums/RoomShape.html
-- https://wofsauge.github.io/IsaacDocs/rep/enums/GridRooms.html
+- https://wofsauge.github.io/IsaacDocs/rep/enums/RoomType.html
 
 ## Features
 
-- 13 × 13 room editor.
-- Click-to-place rooms using a room-type palette.
-- Isaac-style minimap sprites for supported special room types and pickups.
-- Drag rooms to reposition them.
-- Arrow nudges in the inspector for precise movement.
-- Real multi-cell room footprints and L rooms.
-- Room type, visited state and notes.
-- Dropped pickup tracking per room.
-- Quick `+1` actions for coins, keys, bombs, hearts, chests and batteries.
-- Generic support for cards, pills, runes, trinkets and collectibles/pedestals.
-- Main / secondary / Death Certificate dimension tabs.
-- Optional raw grid indices / edit guides.
+- 13 × 13 room editor with coordinate axes outside the matrix.
+- Click an empty cell for a `1x1`; drag across cells for `1x2`, `2x1` and `2x2`.
+- Drag existing rooms to reposition them.
+- Wheel zoom focused around the pointer, plus `− / reset / +` controls.
+- Browser-height workspace: the page itself never scrolls; dense side panels scroll internally.
+- **Canonical RoomShape preview images from IsaacDocs** for all 12 shapes.
+- **Canonical RoomType icons from IsaacDocs** wherever the enum docs expose one.
+- Dedicated minimap door layer between adjacent rooms.
+- Dropped pickups rendered directly inside rooms as well as editable in the inspector.
+- Visual shape picker for corridor and L variants.
+- Room type, visited state, notes and pickup tracking.
+- Main / secondary / Death Certificate dimensions.
+- Optional edit guides without per-cell numeric labels.
 - Local autosave through `localStorage`.
 - Import/export of portable `.tboimap.json` files.
-- Responsive desktop/tablet UI.
-- CI with typecheck, tests and production build.
+- PF Tempesta Seven Condensed for HUD-like UI and Upheaval for title treatment.
+- CI with TypeScript, unit tests, production build and Playwright browser UI checks.
 - GitHub Pages deployment workflow.
 
 ## Rendering architecture
 
-The editor deliberately does **not** use Canvas, PixiJS or Konva. The map is small and deterministic enough that native browser primitives are cleaner:
+The editor deliberately does **not** use Canvas, PixiJS or Konva. A 169-cell deterministic map is cleaner with native browser primitives:
 
-- **React DOM** owns controls, accessibility and the 169 grid hit targets.
-- **CSS Grid** gives both the interaction grid and the visual room layer the same 13 × 13 coordinate system.
-- Every room is rendered **once** in a dedicated visual layer, rather than duplicating artwork inside each occupied cell.
-- **SVG** performs exact spritesheet cropping for room silhouettes and icons. Each sprite uses a local zero-based viewport with the sheet translated underneath it, so pixels outside the selected frame cannot bleed into the map.
-- Multi-cell and L-room icons use the centroid of the actually occupied cells, avoiding the missing quadrant of L shapes.
+```text
+MapViewport
+├── InteractionGrid        React DOM, 13×13 invisible hit targets
+└── Minimap visual layers
+    ├── Room layer         CSS Grid; one element per room
+    │   ├── RoomShape      canonical IsaacDocs preview PNG
+    │   ├── RoomType       canonical IsaacDocs RoomType icon
+    │   └── Pickup layer   dropped resources visible in-room
+    └── Door layer         explicit visual connections
+```
 
-This keeps room/domain logic independent from rendering and avoids a game-engine dependency for a board with only 169 possible positions.
+- **React DOM** owns controls, accessibility and pointer interactions.
+- **CSS Grid** gives interaction, room and door layers the same 13 × 13 coordinate system.
+- Every room is rendered once instead of duplicating art in every occupied cell.
+- Room shape/type art uses the pinned IsaacDocs images directly; it is not reconstructed with CSS and no blur/brightness/contrast filter is applied.
+- Multi-cell and L-room type icons use the centroid of the occupied cells.
+- Pickups are a separate skin, so room rendering is no longer coupled to MiniMAPI.
+
+See [`ASSETS.md`](./ASSETS.md) for pinned revisions and provenance.
 
 ## Development
 
@@ -70,6 +83,15 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+Browser/UI checks:
+
+```bash
+npx playwright install chromium
+npm run test:visual
+```
+
+The Playwright suite uses the real UI to place rooms, drag large footprints, change an L shape through the inspector, add pickups and zoom the map. It also captures a representative map screenshot as a CI artifact (`map-visual-check`) so visual changes can be reviewed instead of inferred only from DOM tests.
 
 ## Data format
 
@@ -99,27 +121,21 @@ The app stores a versioned document with independent room arrays per dimension:
 
 The tracker uses a top-left **tracker anchor** for its shape geometry. For some engine-level L-room details (notably the special `GridIndex` semantics of `ROOMSHAPE_LTL`), do not treat the exported anchor as a byte-for-byte replacement for `RoomDescriptor.GridIndex`.
 
-## Minimap sprites / game assets
+## Visual assets
 
-The UI has a sprite adapter in `src/components/IsaacSprite.tsx`. It renders 16×16 frames from MiniMAPI's extended minimap icon sheet for supported room types and pickups, while preserving lightweight text-symbol fallbacks for types without a reliable frame.
+Room silhouettes and RoomType icons come from the same preview/icon images used by the pinned IsaacDocs revision. MiniMAPI is retained only as a secondary source for pickup icons not covered by those enum tables. No upstream PNG or font file is committed to this repository.
 
-The upstream sprite sheet is pinned to a specific MiniMAPI revision and loaded at runtime; the PNG itself is **not committed to this repository**. That keeps the editor logic independent from the art layer and prevents an upstream update from silently changing the UI.
-
-See [`ASSETS.md`](./ASSETS.md) for the exact revision, source paths, attribution and replacement instructions.
-
-Users who want a fully self-contained/offline skin can extract their own Repentance+ resources with the game's `ResourceExtractor` and point the adapter at their local copy.
+See [`ASSETS.md`](./ASSETS.md) for exact mappings and attribution.
 
 ## GitHub Pages
 
 `vite.config.ts` sets the project-site base path to `/TBOIMapTracker/`. Every push to `main` builds `dist/` and deploys it with the official GitHub Pages Actions flow.
-
-If Pages has never been enabled for the repository, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once. After that, pushes to `main` deploy automatically.
 
 ## Roadmap
 
 - Optional self-contained skin using user-extracted Repentance+ resources.
 - Multiple floors grouped into a complete run.
 - Undo / redo and keyboard room-type shortcuts.
-- Optional secret-room candidate helpers (clearly marked as heuristics, not guarantees).
+- Optional secret-room candidate helpers, clearly marked as heuristics.
 - Shareable compressed map URLs.
 - Item database integration for collectible names/icons without coupling the editor core to one provider.
