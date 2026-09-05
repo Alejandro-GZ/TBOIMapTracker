@@ -52,6 +52,28 @@ export const coordinateKey = ({ x, y }: GridPoint) => `${x}:${y}`;
 
 export const getShapeOffsets = (shape: RoomShapeId) => SHAPE_OFFSETS[shape];
 
+export const getShapeBounds = (shape: RoomShapeId) => {
+  const offsets = SHAPE_OFFSETS[shape];
+  return {
+    width: Math.max(...offsets.map((point) => point.x)) + 1,
+    height: Math.max(...offsets.map((point) => point.y)) + 1,
+  };
+};
+
+/**
+ * Visual center in cell units. For L rooms this is the centroid of the three
+ * occupied cells rather than the center of the 2×2 bounding box, so room icons
+ * never sit in the missing quadrant.
+ */
+export const getShapeVisualCenter = (shape: RoomShapeId) => {
+  const offsets = SHAPE_OFFSETS[shape];
+  const count = offsets.length;
+  return {
+    x: offsets.reduce((sum, point) => sum + point.x + 0.5, 0) / count,
+    y: offsets.reduce((sum, point) => sum + point.y + 0.5, 0) / count,
+  };
+};
+
 export const getRoomCells = (room: Pick<Room, 'anchor' | 'shape'>): GridPoint[] =>
   SHAPE_OFFSETS[room.shape].map(({ x, y }) => ({
     x: room.anchor.x + x,
