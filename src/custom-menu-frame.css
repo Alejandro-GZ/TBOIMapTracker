@@ -1,0 +1,189 @@
+:root {
+  --user-menu-top: url('./assets/ui/menu-top.png');
+  --user-menu-left: url('./assets/ui/menu-left.png');
+  --user-menu-right: url('./assets/ui/menu-right.png');
+  --tracker-map-bg: #1b0d08;
+  --tracker-map-bg-soft: #24120c;
+}
+
+/* The supplied PNGs were authored over a 1920x1080 composition. Keep those
+ * proportions instead of stretching the paper into generic web cards. */
+.app-shell {
+  background: var(--tracker-map-bg) !important;
+}
+
+.top-paper-frame {
+  position: relative;
+  z-index: 30;
+  flex: 0 0 clamp(132px, 15.5dvh, 168px);
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  background-image: var(--user-menu-top);
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% 100%;
+  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, .38));
+}
+
+.top-paper-frame .topbar {
+  position: relative !important;
+  top: auto !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: clamp(17px, 2.2vh, 26px) clamp(28px, 2.7vw, 52px) 3px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.top-paper-frame .dimension-bar {
+  position: relative !important;
+  top: auto !important;
+  flex: 0 0 42px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  margin: 0 !important;
+  padding: 0 clamp(28px, 2.7vw, 52px) clamp(11px, 1.35vh, 16px) !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+  overflow: hidden;
+}
+
+.top-paper-frame .topbar input,
+.top-paper-frame .top-actions button,
+.top-paper-frame .dimension-bar button {
+  background: rgba(79, 61, 47, .04) !important;
+}
+
+/* Side sheets use the exact left/right silhouettes supplied by the user. */
+.workspace {
+  grid-template-columns:
+    clamp(190px, 12.3vw, 236px)
+    minmax(0, 1fr)
+    clamp(280px, 17.9vw, 344px) !important;
+  gap: clamp(6px, .65vw, 13px) !important;
+  padding: 0 !important;
+  background: var(--tracker-map-bg) !important;
+}
+
+.palette-panel,
+.inspector-panel {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  box-shadow: none !important;
+  filter: drop-shadow(5px 7px 0 rgba(0, 0, 0, .34));
+  scrollbar-color: rgba(71, 55, 43, .45) transparent;
+}
+
+.palette-panel {
+  background-image: var(--user-menu-left) !important;
+  padding: clamp(26px, 3vh, 34px) clamp(14px, 1vw, 22px) clamp(28px, 3.2vh, 40px) !important;
+}
+
+.inspector-panel {
+  background-image: var(--user-menu-right) !important;
+  padding: clamp(26px, 3vh, 34px) clamp(20px, 1.35vw, 30px) clamp(28px, 3.2vh, 40px) !important;
+}
+
+.palette-panel::before,
+.inspector-panel::before {
+  display: none !important;
+}
+
+/* Keep every control visually on the paper instead of drawing another card. */
+.palette-panel .tip-card,
+.palette-panel .warning-card,
+.inspector-panel .tip-card,
+.inspector-panel .warning-card,
+.inspector-panel .room-facts {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* The playfield now uses the same warm, near-black brown family as the Isaac
+ * menu backdrop rather than a neutral black web canvas. */
+body,
+.map-stage,
+.map-stage-header,
+.grid-frame {
+  background-color: var(--tracker-map-bg) !important;
+}
+
+.map-viewport {
+  border: 0 !important;
+  background:
+    radial-gradient(ellipse at 44% 42%, rgba(77, 38, 23, .22), transparent 43%),
+    radial-gradient(ellipse at 78% 75%, rgba(93, 48, 27, .10), transparent 30%),
+    var(--tracker-map-bg-soft) !important;
+  box-shadow:
+    inset 0 0 118px 30px rgba(0, 0, 0, .56),
+    inset 0 0 18px rgba(0, 0, 0, .36) !important;
+}
+
+.map-viewport::before {
+  opacity: .10 !important;
+}
+
+.map-stage-header {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.footer-bar {
+  background: #120805 !important;
+}
+
+@media (max-width: 1180px) {
+  .top-paper-frame {
+    flex-basis: 128px;
+  }
+
+  .workspace {
+    grid-template-columns: 174px minmax(0, 1fr) 248px !important;
+  }
+
+  .palette-panel {
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+  }
+
+  .inspector-panel {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+}
+
+@media (max-width: 930px) {
+  .top-paper-frame {
+    flex-basis: 112px;
+    min-height: 108px;
+  }
+
+  .top-paper-frame .topbar {
+    padding: 11px 18px 2px !important;
+  }
+
+  .top-paper-frame .dimension-bar {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .workspace {
+    grid-template-columns: 150px minmax(0, 1fr) 216px !important;
+  }
+}
