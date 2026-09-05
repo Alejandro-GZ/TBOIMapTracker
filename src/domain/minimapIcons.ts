@@ -27,8 +27,13 @@ export const ROOM_ICON_BY_TYPE: Partial<Record<RoomTypeId, MinimapIconId>> = {
   secret: 'R_SECRET', 'super-secret': 'R_SUPERSECRET', 'ultra-secret': 'R_ULTRASECRET', arcade: 'R_ARCADE', curse: 'R_CURSE',
   challenge: 'R_NCHALLENGE', 'boss-challenge': 'R_BCHALLENGE', library: 'R_LIBRARY', sacrifice: 'R_SACRIFICE', dice: 'R_DICE',
   planetarium: 'R_PLANETARIUM', bedroom: 'R_ISAACS', devil: 'R_DEVIL', angel: 'R_ANGEL', error: 'R_ERROR',
-  blue: 'R_NORMAL', red: 'R_NORMAL', 'black-market': 'R_SHOP',
+  blue: 'R_NORMAL', red: 'R_NORMAL', 'black-market': 'R_SHOP', 'secret-exit': 'R_CRAWLSPACE', other: 'R_UNKNOWN',
 };
+
+/** Palette/inspector still show a key for these rooms, but the real minimap
+ * view communicates them through the room body itself and should not draw a
+ * central type icon. */
+export const ROOM_TYPES_WITHOUT_MAP_ICON: readonly RoomTypeId[] = ['normal', 'blue', 'red'];
 
 export const ROOM_ICON_VARIANT_CLASS: Partial<Record<RoomTypeId, string>> = {
   blue: 'isaac-room-type-blue', red: 'isaac-room-type-red', 'black-market': 'isaac-room-type-black-market',
