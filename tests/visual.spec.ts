@@ -76,7 +76,7 @@ test('builds a representative floor through the real UI and captures it', async 
   );
   expect(shapeSources.every((src) => src.includes(`wofsauge/IsaacDocs/${DOCS_REVISION}`))).toBeTruthy();
 
-  const treasureIcon = page.locator('img[data-isaac-room-type="treasure"]').first();
+  const treasureIcon = page.locator('.map-room-visual[data-room-type="treasure"] img[data-isaac-room-type="treasure"]');
   await expect(treasureIcon).toBeVisible();
   expect(await treasureIcon.getAttribute('src')).toContain('/roomtypes/4.png');
   const treasureIconBox = await treasureIcon.boundingBox();
