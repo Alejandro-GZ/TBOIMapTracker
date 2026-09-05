@@ -34,8 +34,6 @@ async function dragPath(page: Page, cells: Array<[number, number]>) {
 
   for (const box of boxes.slice(1)) {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
-    // Pointer-path creation depends on entering each intended hit cell. A short
-    // dwell makes this deterministic when the viewport/layout changes size.
     await page.waitForTimeout(25);
   }
 
@@ -91,7 +89,13 @@ test('builds a representative floor through the real UI and captures it', async 
 
   const horizontalShape = page.locator('[data-room-shape="2x1"] .isaac-room-shape').first();
   await expect(horizontalShape).toHaveCSS('object-fit', 'contain');
+  await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
+
+  for (const selector of ['.top-paper-frame', '.palette-panel', '.inspector-panel']) {
+    const backgroundImage = await page.locator(selector).evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(backgroundImage).not.toBe('none');
+  }
 
   await expect(page.getByTestId('room-pickup-layer')).toBeVisible();
   await expect(page.getByTestId('map-door-layer')).toBeVisible();
@@ -122,7 +126,7 @@ test('builds a representative floor through the real UI and captures it', async 
   });
 });
 
-test('dragging cells creates rectangular and L Isaac footprints', async ({ page }) => {
+test('dragging cells creates horizontal, vertical and L Isaac footprints', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
 
   await dragCells(page, [1, 1], [2, 1]);
@@ -130,12 +134,6 @@ test('dragging cells creates rectangular and L Isaac footprints', async ({ page 
 
   await dragCells(page, [10, 1], [10, 2]);
   await expect(page.locator('[data-room-shape="1x2"]')).toHaveCount(1);
-
-  // The representative-floor test above already exercises a four-cell 2x2
-  // path. Here use the supported corner-to-corner gesture so this assertion
-  // covers the alternate UX without duplicating a timing-sensitive loop.
-  await dragCells(page, [1, 10], [2, 11]);
-  await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
 
   await dragPath(page, [[8, 9], [9, 9], [9, 10]]);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
