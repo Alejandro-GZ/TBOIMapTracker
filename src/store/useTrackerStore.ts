@@ -5,6 +5,7 @@ import { getDefaultRoomShape, isRoomShapeAllowed } from '../domain/roomRules';
 import type {
   DimensionId,
   GridPoint,
+  MapTool,
   Pickup,
   Room,
   RoomShapeId,
@@ -50,10 +51,12 @@ interface TrackerState {
   selectedRoomId: string | null;
   placementType: RoomTypeId;
   placementShape: RoomShapeId;
+  mapTool: MapTool;
   showIndices: boolean;
   setActiveDimension: (dimension: DimensionId) => void;
   setPlacementType: (type: RoomTypeId) => void;
   setPlacementShape: (shape: RoomShapeId) => void;
+  setMapTool: (tool: MapTool) => void;
   setShowIndices: (show: boolean) => void;
   selectRoom: (roomId: string | null) => void;
   addRoom: (anchor: GridPoint, shape?: RoomShapeId) => boolean;
@@ -83,6 +86,7 @@ export const useTrackerStore = create<TrackerState>()(
       selectedRoomId: null,
       placementType: 'normal',
       placementShape: '1x1',
+      mapTool: 'move',
       showIndices: false,
 
       setActiveDimension: (activeDimension) => set({ activeDimension, selectedRoomId: null }),
@@ -93,6 +97,7 @@ export const useTrackerStore = create<TrackerState>()(
           placementShape: isRoomShapeAllowed(placementType, currentShape)
             ? currentShape
             : getDefaultRoomShape(placementType),
+          mapTool: 'paint',
         });
       },
       setPlacementShape: (placementShape) => {
@@ -100,6 +105,7 @@ export const useTrackerStore = create<TrackerState>()(
         if (!isRoomShapeAllowed(placementType, placementShape)) return;
         set({ placementShape });
       },
+      setMapTool: (mapTool) => set({ mapTool }),
       setShowIndices: (showIndices) => set({ showIndices }),
       selectRoom: (selectedRoomId) => set({ selectedRoomId }),
 
@@ -312,10 +318,10 @@ export const useTrackerStore = create<TrackerState>()(
       },
 
       loadDocument: (document) =>
-        set({ document, activeDimension: 'main', selectedRoomId: null }),
+        set({ document, activeDimension: 'main', selectedRoomId: null, mapTool: 'move' }),
 
       newDocument: () =>
-        set({ document: createDocument(), activeDimension: 'main', selectedRoomId: null }),
+        set({ document: createDocument(), activeDimension: 'main', selectedRoomId: null, mapTool: 'move' }),
     }),
     { name: 'tboi-map-tracker-v1' },
   ),
