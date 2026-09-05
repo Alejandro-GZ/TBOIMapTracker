@@ -41,7 +41,9 @@ export default function App() {
       <div className="top-paper-frame">
         <header className="topbar">
           <div className="brand">
-            <div className="brand-mark">M</div>
+            <div className="brand-mark" aria-hidden="true">
+              <img src={`${import.meta.env.BASE_URL}app-icon.png`} alt="" draggable={false} />
+            </div>
             <div>
               <strong>TBOI MAP TRACKER</strong>
               <span>Repentance+ minimap memory</span>
