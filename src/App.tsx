@@ -51,8 +51,8 @@ export default function App() {
         <div className="brand">
           <div className="brand-mark">M</div>
           <div>
-            <strong>TBOI Map Tracker</strong>
-            <span>Repentance+ floor memory</span>
+            <strong>TBOI MAP TRACKER</strong>
+            <span>Repentance+ minimap memory</span>
           </div>
         </div>
 
@@ -62,13 +62,24 @@ export default function App() {
             value={document.name}
             onChange={(event) => setDocumentMeta({ name: event.target.value })}
             aria-label="Run name"
+            placeholder="Run"
           />
-          <input value={document.floor} onChange={(event) => setDocumentMeta({ floor: event.target.value })} aria-label="Floor name" placeholder="Floor" />
-          <input value={document.seed} onChange={(event) => setDocumentMeta({ seed: event.target.value.toUpperCase() })} aria-label="Seed" placeholder="Seed" />
+          <input
+            value={document.floor}
+            onChange={(event) => setDocumentMeta({ floor: event.target.value })}
+            aria-label="Floor name"
+            placeholder="Floor"
+          />
+          <input
+            value={document.seed}
+            onChange={(event) => setDocumentMeta({ seed: event.target.value.toUpperCase() })}
+            aria-label="Seed"
+            placeholder="Seed"
+          />
         </div>
 
         <div className="top-actions">
-          <button type="button" onClick={() => setShowIndices(!showIndices)} className={showIndices ? 'active-button' : ''}># Indices</button>
+          <button type="button" onClick={() => setShowIndices(!showIndices)} className={showIndices ? 'active-button' : ''}>Grid</button>
           <button type="button" onClick={() => fileInputRef.current?.click()}>Import</button>
           <button type="button" onClick={exportDocument}>Export</button>
           <button
@@ -94,7 +105,7 @@ export default function App() {
       </header>
 
       <nav className="dimension-bar" aria-label="Level dimension">
-        <span className="dimension-label">Dimension</span>
+        <span className="dimension-label">Map layer</span>
         {DIMENSIONS.map((dimension) => (
           <button
             type="button"
@@ -107,7 +118,7 @@ export default function App() {
             <small>{document.dimensions[dimension.id].length}</small>
           </button>
         ))}
-        <span className="autosave-state">● Autosaved locally</span>
+        <span className="autosave-state">● saved locally</span>
       </nav>
 
       <main className="workspace">
@@ -119,8 +130,8 @@ export default function App() {
       <footer className="footer-bar">
         <span>{roomCount} rooms</span>
         <span>{pickupCount} pickups tracked</span>
-        <span>Grid 13×13 · dimension {DIMENSIONS.find((dimension) => dimension.id === activeDimension)?.short}</span>
-        <span className="footer-note">No game assets are bundled; the UI is ready for a sprite skin later.</span>
+        <span>13×13 · {DIMENSIONS.find((dimension) => dimension.id === activeDimension)?.short}</span>
+        <span className="footer-note">Pinned MiniMAPI sprite skin · manual floor tracker</span>
       </footer>
     </div>
   );
