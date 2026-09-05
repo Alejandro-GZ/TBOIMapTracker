@@ -7,7 +7,6 @@ import './isaac-viewport.css';
 import './visual-tuning.css';
 import './isaac-paper-ui.css';
 import './custom-menu-frame.css';
-import './custom-menu-left.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
