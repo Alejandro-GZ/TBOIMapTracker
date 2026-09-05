@@ -7,9 +7,9 @@
  * around the Blue Map icon. Match the selector specificity used by
  * isaac-paper-ui.css so its important border cannot win. */
 .topbar .brand-mark {
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px;
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px;
   padding: 0 !important;
   border: 0 !important;
   outline: 0 !important;
@@ -23,32 +23,50 @@
 
 .topbar .brand-mark img {
   display: block;
-  width: 38px;
-  height: 38px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
 /* Give the project name more of the visual weight of an Isaac menu heading,
- * and lift the brand itself without moving the run fields/actions again. */
+ * while keeping the run metadata aligned in the compact top sheet. */
 .topbar .brand {
-  transform: translateY(-5px);
-  gap: 9px;
+  transform: translateY(-4px);
+  gap: 11px;
+  min-width: 278px;
 }
 
 .topbar .brand strong {
   display: block;
-  font-size: 20px !important;
-  line-height: .95 !important;
-  letter-spacing: .055em !important;
+  font-size: 27px !important;
+  line-height: .9 !important;
+  letter-spacing: .045em !important;
 }
 
 .topbar .brand span {
   display: block;
-  margin-top: 3px;
-  font-size: 8px !important;
+  margin-top: 4px;
+  font-size: 9px !important;
   line-height: 1 !important;
+}
+
+@media (max-width: 1180px) {
+  .topbar .brand {
+    min-width: 235px;
+  }
+
+  .topbar .brand strong {
+    font-size: 24px !important;
+  }
+
+  .topbar .brand-mark,
+  .topbar .brand-mark img {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px;
+  }
 }
 
 @media (max-width: 930px) {
@@ -57,17 +75,23 @@
   }
 
   .topbar .brand {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
+    min-width: 190px;
+    gap: 8px;
   }
 
   .topbar .brand strong {
-    font-size: 17px !important;
+    font-size: 21px !important;
+  }
+
+  .topbar .brand span {
+    font-size: 7px !important;
   }
 
   .topbar .brand-mark,
   .topbar .brand-mark img {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px;
   }
 }
