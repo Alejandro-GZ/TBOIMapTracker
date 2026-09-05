@@ -36,7 +36,7 @@ export function RoomPalette() {
                 title={roomType.offGrid ? `${roomType.label} — off-grid internally in Isaac` : roomType.label}
               >
                 <span className="room-tool-icon">
-                  <RoomTypeSprite type={roomType.id} fallback={roomType.icon} scale={1.25} />
+                  <RoomTypeSprite type={roomType.id} fallback={roomType.icon} scale={1} />
                 </span>
                 <span>{roomType.label}</span>
                 {roomType.offGrid && <small>off-grid</small>}

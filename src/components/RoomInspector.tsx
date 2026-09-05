@@ -64,7 +64,7 @@ export function RoomInspector() {
           <span className="eyebrow">Room inspector</span>
           <h2>
             <span className={`type-chip tone-${meta.tone}`}>
-              <RoomTypeSprite type={room.type} fallback={meta.icon} scale={1.25} />
+              <RoomTypeSprite type={room.type} fallback={meta.icon} scale={1} />
             </span>
             {meta.label}
           </h2>
@@ -127,7 +127,7 @@ export function RoomInspector() {
               title={`Add ${PICKUP_META[kind].label}`}
             >
               <strong>
-                <PickupSprite kind={kind} fallback={PICKUP_META[kind].icon} scale={1.25} />
+                <PickupSprite kind={kind} fallback={PICKUP_META[kind].icon} scale={1} />
               </strong>
               <span>+1</span>
             </button>
@@ -148,7 +148,7 @@ export function RoomInspector() {
           {room.pickups.map((pickup) => (
             <div className="pickup-row" key={pickup.id}>
               <span className="pickup-icon">
-                <PickupSprite kind={pickup.kind} fallback={PICKUP_META[pickup.kind].icon} scale={1.25} />
+                <PickupSprite kind={pickup.kind} fallback={PICKUP_META[pickup.kind].icon} scale={1} />
               </span>
               <span className="pickup-name">{pickup.label}</span>
               <strong>×{pickup.quantity}</strong>

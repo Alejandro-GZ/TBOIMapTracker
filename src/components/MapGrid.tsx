@@ -45,7 +45,7 @@ export function MapGrid() {
           key={`${x}-${y}`}
           className={[
             'grid-cell',
-            room ? `occupied tone-${meta?.tone}` : 'empty',
+            room ? 'occupied' : 'empty',
             room?.id === selectedRoomId ? 'selected' : '',
             isPrimary ? 'room-primary' : '',
             sameRight ? 'same-right' : '',
@@ -85,11 +85,10 @@ export function MapGrid() {
             <span className={`room-mark room-mark-${room.shape}`}>
               <RoomTypeSprite
                 type={room.type}
-                fallback={meta?.icon ?? '•'}
-                scale={1.5}
+                fallback={meta?.icon}
+                scale={2}
                 className="map-room-sprite"
               />
-              <small>{room.shape}</small>
             </span>
           )}
           {room && room.pickups.length > 0 && isPrimary && (

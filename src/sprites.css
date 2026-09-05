@@ -1,7 +1,14 @@
-.isaac-sprite {
-  display: inline-block;
+.isaac-sprite,
+.isaac-room-shape {
+  display: block;
   flex: 0 0 auto;
-  background-repeat: no-repeat;
+  overflow: hidden;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+
+.isaac-sprite image,
+.isaac-room-shape image {
   image-rendering: pixelated;
 }
 
@@ -20,13 +27,13 @@
   aspect-ratio: 18 / 16;
 }
 
-.grid-cell.occupied[class*="tone-"] {
-  background: #191613;
-  border-color: #39332d;
+.grid-cell.occupied {
+  background: #151310;
+  border-color: #302b26;
 }
 
 .grid-cell.occupied:not(.selected) {
-  box-shadow: inset 0 0 0 1px #211e1a;
+  box-shadow: inset 0 0 0 1px #1b1815;
 }
 
 .grid-cell.room-primary {
@@ -44,10 +51,7 @@
   z-index: 1;
   width: 100%;
   height: 100%;
-  overflow: visible;
   pointer-events: none;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .78));
 }
 
 .isaac-room-shape-1x2,
@@ -82,7 +86,9 @@
   z-index: 2;
   width: 100%;
   height: 100%;
-  gap: 1px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
 }
 
 .room-mark-1x2,
@@ -109,11 +115,8 @@
 }
 
 .map-room-sprite {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .85));
-}
-
-.room-mark small {
-  opacity: .48;
+  /* Deliberately no CSS filter: blur/drop-shadow makes nearest-neighbor art muddy. */
+  filter: none;
 }
 
 .room-tool-icon,
@@ -126,7 +129,7 @@
 .type-chip .isaac-sprite,
 .quick-pickups .isaac-sprite,
 .pickup-icon .isaac-sprite {
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .65));
+  filter: none;
 }
 
 .room-tool-icon {
