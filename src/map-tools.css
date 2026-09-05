@@ -1,0 +1,118 @@
+/* Map interaction toolbar -------------------------------------------------
+ * Keep the document actions next to the map controls instead of in the paper
+ * header. Icon buttons intentionally reuse the compact Isaac HUD treatment.
+ */
+
+.top-paper-frame .topbar {
+  display: grid !important;
+  grid-template-columns: minmax(190px, 260px) minmax(340px, 590px) !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.top-paper-frame .run-meta {
+  width: min(590px, 100%) !important;
+  justify-self: end;
+}
+
+.map-stage-header {
+  flex: 0 0 58px !important;
+  min-height: 58px !important;
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center !important;
+  gap: 12px;
+}
+
+.map-control-cluster {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.map-tool-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.map-tool-controls button {
+  width: 25px;
+  height: 24px;
+  min-width: 25px;
+  padding: 3px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #302820;
+  border-radius: 0;
+  color: #a9a095;
+  background: #080604;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.map-tool-controls button:hover {
+  color: #eee7dc;
+  border-color: #665b51;
+}
+
+.map-tool-controls button.active-button {
+  color: #17120e;
+  background: #bdb4a6;
+  border-color: #d6cec1;
+}
+
+.map-tool-divider {
+  width: 1px;
+  height: 17px;
+  margin: 0 2px;
+  background: #3d332a;
+}
+
+.map-toolbar-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  pointer-events: none;
+}
+
+.map-viewport.tool-move .grid-cell.empty {
+  cursor: default;
+}
+
+.map-viewport.tool-move .grid-cell.occupied {
+  cursor: grab;
+}
+
+.map-viewport.tool-paint .grid-cell {
+  cursor: crosshair;
+}
+
+.map-viewport.tool-erase .grid-cell.empty {
+  cursor: default;
+}
+
+.map-viewport.tool-erase .grid-cell.occupied {
+  cursor: pointer;
+}
+
+@media (max-width: 930px) {
+  .top-paper-frame .topbar {
+    grid-template-columns: 150px minmax(300px, 1fr) !important;
+  }
+
+  .map-stage-header {
+    gap: 6px;
+  }
+
+  .map-tool-controls button {
+    width: 23px;
+    min-width: 23px;
+  }
+}
