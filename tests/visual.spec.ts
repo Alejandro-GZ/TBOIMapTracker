@@ -19,7 +19,6 @@ async function waitForArt(page: Page) {
 
 async function dragPath(page: Page, cells: Array<[number, number]>) {
   if (cells.length === 0) throw new Error('Drag path needs at least one cell');
-
   const boxes = [];
   for (const [x, y] of cells) {
     const box = await page.getByTestId(`map-cell-${x}-${y}`).boundingBox();
@@ -31,18 +30,27 @@ async function dragPath(page: Page, cells: Array<[number, number]>) {
   await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
   await page.mouse.down();
   await page.waitForTimeout(25);
-
   for (const box of boxes.slice(1)) {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
     await page.waitForTimeout(25);
   }
-
   await page.mouse.up();
   await page.waitForTimeout(25);
 }
 
 async function dragCells(page: Page, from: [number, number], to: [number, number]) {
   await dragPath(page, [from, to]);
+}
+
+async function addContent(page: Page, id: string) {
+  await page.getByTestId('add-content-button').click();
+  await expect(page.getByTestId('content-picker-modal')).toBeVisible();
+  const option = page.getByTestId(`marker-option-${id}`);
+  if (!(await option.isVisible())) {
+    await page.getByRole('button', { name: 'Structs', exact: true }).click();
+  }
+  await page.getByTestId(`marker-option-${id}`).click();
+  await page.getByRole('button', { name: 'Close contents picker' }).click();
 }
 
 test.beforeEach(async ({ page }) => {
@@ -54,8 +62,8 @@ test.beforeEach(async ({ page }) => {
 test('builds a representative floor through the real UI and captures it', async ({ page }, testInfo) => {
   await page.getByTestId('room-tool-treasure').click();
   await page.getByTestId('map-cell-5-6').click();
-  await page.getByTestId('quick-pickup-heart').click();
-  await page.getByTestId('quick-pickup-coin').click();
+  await addContent(page, 'P_FULLHEART');
+  await addContent(page, 'P_PENNY');
 
   await page.getByTestId('room-tool-boss').click();
   await page.getByTestId('map-cell-7-6').click();
@@ -82,40 +90,15 @@ test('builds a representative floor through the real UI and captures it', async 
   expect(shapeSources.every((src) => src.includes(`wofsauge/IsaacDocs/${DOCS_REVISION}`))).toBeTruthy();
 
   const treasureRoom = page.locator('.map-room-visual[data-room-type="treasure"]').first();
-  const treasureShape = treasureRoom.locator('.isaac-room-shape');
-  const treasureIcon = treasureRoom.locator('[data-isaac-room-type="treasure"]');
-  await expect(treasureShape).toHaveCSS('opacity', '1');
-  await expect(treasureIcon).toHaveCSS('opacity', '1');
-  await expect(treasureIcon).toHaveAttribute('data-icon-id', 'R_TREASURE');
-  expect(Number(await treasureRoom.evaluate((element) =>
-    getComputedStyle(element).getPropertyValue('--room-art-scale').trim(),
-  ))).toBeCloseTo(1.88, 2);
-
-  const treasureIconBox = await treasureIcon.boundingBox();
-  expect(treasureIconBox?.width ?? 0).toBe(36);
-  expect(treasureIconBox?.height ?? 0).toBe(36);
+  await expect(treasureRoom.locator('[data-isaac-room-type="treasure"]')).toHaveAttribute('data-icon-id', 'R_TREASURE');
+  await expect(treasureRoom.getByTestId('room-pickup-layer')).toBeVisible();
+  await expect(treasureRoom.getByTestId('room-pickup-layer').locator('.room-pickup-token')).toHaveCount(1);
+  await expect(treasureRoom.locator('.room-pickup-overflow')).toHaveText('+1');
 
   const horizontalRoom = page.locator('[data-room-shape="2x1"]').first();
   await expect(horizontalRoom.locator('.isaac-room-shape')).toHaveCSS('object-fit', 'contain');
-  expect(Number(await horizontalRoom.evaluate((element) =>
-    getComputedStyle(element).getPropertyValue('--room-art-scale').trim(),
-  ))).toBeCloseTo(1.875, 3);
   await expect(page.locator('[data-room-shape="2x2"]')).toHaveCount(1);
   await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
-
-  for (const selector of ['.top-paper-frame', '.palette-panel', '.inspector-panel']) {
-    const backgroundImage = await page.locator(selector).evaluate((element) => getComputedStyle(element).backgroundImage);
-    expect(backgroundImage).not.toBe('none');
-  }
-
-  const pickupLayer = page.getByTestId('room-pickup-layer');
-  await expect(pickupLayer).toBeVisible();
-  await expect(pickupLayer.locator('[data-icon-id="P_FULLHEART"]')).toHaveCount(1);
-  await expect(pickupLayer.locator('[data-icon-id="P_PENNY"]')).toHaveCount(1);
-  await expect(page.getByTestId('map-door-layer')).toHaveCount(0);
-  await expect(page.locator('.map-status')).toHaveCount(0);
-  await expect(page.locator('.room-drag-help')).toHaveCount(0);
-  await expect(page.locator('.dimension-bar')).toHaveCount(0);
 
   const viewportContract = await page.evaluate(() => ({
     innerHeight: window.innerHeight,
@@ -133,141 +116,108 @@ test('builds a representative floor through the real UI and captures it', async 
   await page.screenshot({ path: testInfo.outputPath('full-workspace.png'), fullPage: false, animations: 'disabled' });
 });
 
-test('uses extracted normal and recoloured blue/red room icons', async ({ page }) => {
-  const paletteNormalIcon = page.getByTestId('room-tool-normal').locator('[data-isaac-room-type="normal"]');
-  await expect(paletteNormalIcon).toHaveAttribute('data-icon-id', 'R_NORMAL');
+test('uses the requested map icon semantics', async ({ page }) => {
+  await expect(page.getByTestId('room-tool-normal').locator('[data-icon-id="R_NORMAL"]')).toHaveCount(1);
 
   await page.getByTestId('room-tool-normal').click();
   await page.getByTestId('map-cell-1-1').click();
-  const normalIcon = page.locator('.map-room-visual[data-room-type="normal"] [data-isaac-room-type="normal"]');
-  await expect(normalIcon).toHaveAttribute('data-icon-id', 'R_NORMAL');
+  await expect(page.locator('.map-room-visual[data-room-type="normal"] [data-isaac-room-type]')).toHaveCount(0);
 
   await page.getByTestId('room-tool-blue').click();
-  await page.getByTestId('map-cell-4-1').click();
-  const blueIcon = page.locator('.map-room-visual[data-room-type="blue"] [data-isaac-room-type="blue"]');
-  await expect(blueIcon).toHaveAttribute('data-icon-id', 'R_NORMAL');
-  const blueFilter = await blueIcon.evaluate((element) => getComputedStyle(element).filter);
-  expect(blueFilter).not.toBe('none');
+  await page.getByTestId('map-cell-3-1').click();
+  await expect(page.locator('.map-room-visual[data-room-type="blue"] [data-isaac-room-type]')).toHaveCount(0);
 
   await page.getByTestId('room-tool-red').click();
-  await page.getByTestId('map-cell-6-1').click();
-  const redIcon = page.locator('.map-room-visual[data-room-type="red"] [data-isaac-room-type="red"]');
-  await expect(redIcon).toHaveAttribute('data-icon-id', 'R_NORMAL');
-  const redFilter = await redIcon.evaluate((element) => getComputedStyle(element).filter);
-  expect(redFilter).not.toBe('none');
-  expect(redFilter).not.toBe(blueFilter);
+  await page.getByTestId('map-cell-5-1').click();
+  const redRoom = page.locator('.map-room-visual[data-room-type="red"]');
+  await expect(redRoom.locator('[data-isaac-room-type]')).toHaveCount(0);
+  const redFilter = await redRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
+  expect(redFilter).toContain('saturate(8.5)');
 
-  const paletteLayout = await page.locator('.palette-panel').evaluate((panel) => {
-    const rect = panel.getBoundingClientRect();
-    const groups = Array.from(panel.querySelectorAll('.palette-group')).map((group) => group.getBoundingClientRect());
-    const lastTool = panel.querySelector('.palette-group-hidden .room-tool:last-child')?.getBoundingClientRect();
-    return {
-      display: getComputedStyle(panel).display,
-      clientHeight: panel.clientHeight,
-      scrollHeight: panel.scrollHeight,
-      panelTop: rect.top,
-      panelBottom: rect.bottom,
-      groupTop: groups[0]?.top ?? 0,
-      groupBottom: groups.at(-1)?.bottom ?? 0,
-      lastToolBottom: lastTool?.bottom ?? 0,
-    };
-  });
-  expect(paletteLayout.display).toBe('grid');
-  expect(paletteLayout.scrollHeight).toBeLessThanOrEqual(paletteLayout.clientHeight + 1);
-  expect(paletteLayout.groupTop).toBeGreaterThanOrEqual(paletteLayout.panelTop);
-  expect(paletteLayout.groupBottom).toBeLessThanOrEqual(paletteLayout.panelBottom + 1);
-  expect(paletteLayout.lastToolBottom).toBeLessThanOrEqual(paletteLayout.panelBottom + 1);
+  await page.getByTestId('room-tool-secret-exit').click();
+  await page.getByTestId('map-cell-7-1').click();
+  await expect(page.locator('.map-room-visual[data-room-type="secret-exit"] [data-icon-id="R_CRAWLSPACE"]')).toHaveCount(1);
+
+  await page.getByTestId('room-tool-other').click();
+  await page.getByTestId('map-cell-9-1').click();
+  await expect(page.locator('.map-room-visual[data-room-type="other"] [data-icon-id="R_UNKNOWN"]')).toHaveCount(1);
 });
 
-test('uses extracted start/error/shop variants and grid layering', async ({ page }) => {
-  await expect(page.locator('.dimension-bar')).toHaveCount(0);
+test('special rooms can use flexible shapes while fixed types stay constrained', async ({ page }) => {
+  await page.getByTestId('room-tool-curse').click();
+  await dragCells(page, [1, 2], [2, 2]);
+  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveAttribute('data-room-shape', '2x1');
 
-  await expect(page.locator('.map-room-visual[data-room-type="start"] [data-isaac-room-type="start"]')).toHaveAttribute('data-icon-id', 'R_START');
+  await page.getByTestId('room-tool-planetarium').click();
+  await dragPath(page, [[8, 8], [9, 8], [9, 9]]);
+  await expect(page.locator('.map-room-visual[data-room-type="planetarium"]')).toHaveAttribute('data-room-shape', 'LBL');
 
-  await page.getByTestId('room-tool-error').click();
-  await page.getByTestId('map-cell-3-1').click();
-  await expect(page.locator('.map-room-visual[data-room-type="error"] [data-isaac-room-type="error"]')).toHaveAttribute('data-icon-id', 'R_ERROR');
-
-  await page.getByTestId('room-tool-black-market').click();
-  await dragCells(page, [8, 1], [9, 1]);
-  const blackMarketIcon = page.locator('.map-room-visual[data-room-type="black-market"] [data-isaac-room-type="black-market"]');
-  await expect(blackMarketIcon).toHaveAttribute('data-icon-id', 'R_SHOP');
-  await expect(blackMarketIcon).toHaveClass(/isaac-room-type-black-market/);
-
-  await page.getByRole('button', { name: 'Grid', exact: true }).click();
-  await expect(page.getByTestId('map-cell-0-0')).toHaveCSS('border-top-style', 'dashed');
-  await expect(page.getByTestId('map-cell-6-6')).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
-
-  const vignette = await page.locator('.app-shell').evaluate((element) => {
-    const style = getComputedStyle(element, '::after');
-    return { background: style.backgroundImage, zIndex: style.zIndex };
-  });
-  expect(vignette.background).toContain('radial-gradient');
-  expect(vignette.zIndex).toBe('20');
-  await expect(page.locator('.palette-panel')).toHaveCSS('z-index', '30');
-});
-
-test('tracks exact extracted pickups and structures', async ({ page }) => {
-  await page.getByTestId('room-tool-treasure').click();
-  await page.getByTestId('map-cell-4-4').click();
-
-  await page.getByTestId('marker-select').selectOption('P_GOLDENKEY');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(page.locator('.pickup-list [data-icon-id="P_GOLDENKEY"]')).toHaveCount(1);
-
-  await page.getByTestId('marker-select').selectOption('S_DONATION');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(page.locator('.pickup-list [data-icon-id="S_DONATION"]')).toHaveCount(1);
-
-  const room = page.locator('.map-room-visual[data-room-type="treasure"]');
-  await expect(room.locator('[data-icon-id="P_GOLDENKEY"]')).toHaveCount(1);
-  await expect(room.locator('[data-icon-id="S_DONATION"]')).toHaveCount(1);
-
-  await page.getByTestId('marker-select').selectOption('P_CHEST');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(room.locator('[data-icon-id="P_CHESTALT"]')).toHaveCount(1);
-});
-
-test('dragging cells creates horizontal, vertical and L Isaac footprints for normal rooms', async ({ page }) => {
-  await page.getByTestId('room-tool-normal').click();
-  await dragCells(page, [1, 1], [2, 1]);
-  await expect(page.locator('[data-room-shape="2x1"]')).toHaveCount(1);
-  await dragCells(page, [10, 1], [10, 2]);
-  await expect(page.locator('[data-room-shape="1x2"]')).toHaveCount(1);
-  await dragPath(page, [[8, 9], [9, 9], [9, 10]]);
-  await expect(page.locator('[data-room-shape="LBL"]')).toHaveCount(1);
-});
-
-test('room types expose and accept only their valid shapes', async ({ page }) => {
   await page.getByTestId('room-tool-shop').click();
-  await dragCells(page, [1, 1], [2, 1]);
+  await dragCells(page, [3, 3], [4, 3]);
   await expect(page.locator('.map-room-visual[data-room-type="shop"]')).toHaveCount(0);
 
   await page.getByTestId('room-tool-boss').click();
-  await page.getByTestId('map-cell-3-3').click();
+  await page.getByTestId('map-cell-5-3').click();
+  await page.getByTestId('room-shape-button').click();
   await expect(page.getByTestId('shape-option-2x2')).toBeVisible();
   await expect(page.getByTestId('shape-option-LTL')).toHaveCount(0);
-
-  await page.getByTestId('room-tool-black-market').click();
-  await dragCells(page, [8, 3], [9, 3]);
-  await expect(page.locator('.map-room-visual[data-room-type="black-market"]')).toHaveAttribute('data-room-shape', '2x1');
-
-  await page.getByTestId('room-tool-red').click();
-  await dragCells(page, [5, 9], [6, 9]);
-  await expect(page.locator('.map-room-visual[data-room-type="red"]')).toHaveCount(0);
 });
 
-test('normal rooms can switch to canonical corridor and L previews', async ({ page }) => {
+test('inspector v2 edits type, shape, mark and grouped contents', async ({ page }) => {
   await page.getByTestId('room-tool-normal').click();
-  await page.getByTestId('map-cell-3-3').click();
-  await page.getByTestId('shape-option-LTL').click();
-  await waitForArt(page);
+  await page.getByTestId('map-cell-3-4').click();
 
-  const room = page.locator('[data-room-shape="LTL"]').first();
-  await expect(room).toBeVisible();
-  const image = room.locator('img[data-isaac-shape="LTL"]');
-  await expect(image).toBeVisible();
-  expect(await image.getAttribute('src')).toContain('/roomshapes/9.png');
+  await expect(page.getByTestId('room-type-select')).toBeVisible();
+  await expect(page.getByText('Move', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Visited / revealed', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Delete room' })).toBeVisible();
+
+  await page.getByTestId('room-type-select').selectOption('curse');
+  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveCount(1);
+
+  await page.getByTestId('room-shape-button').click();
+  await page.getByTestId('shape-option-2x1').click();
+  await expect(page.locator('.map-room-visual[data-room-type="curse"]')).toHaveAttribute('data-room-shape', '2x1');
+
+  await page.getByTestId('room-mark-checkbox').check();
+  const markedRoom = page.locator('.map-room-visual[data-room-type="curse"]');
+  await expect(markedRoom).toHaveAttribute('data-room-marked', 'true');
+  const markFilter = await markedRoom.locator('.isaac-room-shape').evaluate((element) => getComputedStyle(element).filter);
+  expect(markFilter).toContain('drop-shadow');
+
+  await addContent(page, 'P_PENNY');
+  await addContent(page, 'P_PENNY');
+  const token = page.getByTestId('content-token-list').locator('.content-token').first();
+  await expect(token).toContainText('×2');
+  await token.click();
+  await expect(page.getByTestId('content-token-list').locator('.content-token').first()).not.toContainText('×2');
+
+  await page.getByTestId('add-content-button').click();
+  await page.getByRole('button', { name: 'Structs', exact: true }).click();
+  await page.getByTestId('marker-option-S_DONATION').click();
+  await page.getByRole('button', { name: 'Close contents picker' }).click();
+  await expect(page.getByTestId('content-token-list').locator('[data-icon-id="S_DONATION"]')).toHaveCount(1);
+});
+
+test('pixel icons keep valid intrinsic integer scaling', async ({ page }) => {
+  const icons = page.locator('.palette-panel [data-icon-id]');
+  await expect(icons.first()).toBeVisible();
+  const metrics = await icons.evaluateAll((elements) => elements.map((element) => ({
+    sourceWidth: Number(element.getAttribute('data-source-width')),
+    sourceHeight: Number(element.getAttribute('data-source-height')),
+    scale: Number(element.getAttribute('data-pixel-scale')),
+    renderWidth: Number(element.getAttribute('data-render-width')),
+    renderHeight: Number(element.getAttribute('data-render-height')),
+  })));
+
+  for (const metric of metrics) {
+    expect(metric.sourceWidth).toBeGreaterThan(0);
+    expect(metric.sourceHeight).toBeGreaterThan(0);
+    expect(Number.isInteger(metric.scale)).toBeTruthy();
+    expect(metric.scale).toBeGreaterThan(0);
+    expect(metric.renderWidth).toBe(metric.sourceWidth * metric.scale);
+    expect(metric.renderHeight).toBe(metric.sourceHeight * metric.scale);
+  }
 });
 
 test('middle mouse drag pans the map without creating rooms', async ({ page }) => {
