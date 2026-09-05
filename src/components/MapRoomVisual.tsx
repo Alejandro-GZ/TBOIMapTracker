@@ -31,11 +31,15 @@ const ROOM_ART_SCALE: Record<RoomShapeId, number> = {
   LBR: 1,
 };
 
+const COLUMN_PICKUP_SHAPES: readonly RoomShapeId[] = ['1x1', 'IV', '1x2', 'IIV'];
+
 export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const bounds = getShapeBounds(room.shape);
   const center = getShapeVisualCenter(room.shape);
   const hasRoomIcon = !ROOM_TYPES_WITHOUT_MAP_ICON.includes(room.type);
   const hasPickups = room.pickups.length > 0;
+  const splitContent = hasRoomIcon && hasPickups;
+  const pickupLayout = COLUMN_PICKUP_SHAPES.includes(room.shape) ? 'column' : 'row';
 
   const style = {
     gridColumn: `${room.anchor.x + 1} / span ${bounds.width}`,
@@ -46,6 +50,12 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     '--room-content-height': `${88 / bounds.height}%`,
     '--room-art-scale': ROOM_ART_SCALE[room.shape],
   } as CSSProperties;
+
+  const contentClass = splitContent
+    ? 'split-content'
+    : hasRoomIcon
+      ? 'icon-only'
+      : 'pickup-only';
 
   return (
     <div
@@ -59,13 +69,13 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
     >
       <RoomShapeSprite shape={room.shape} />
       {(hasRoomIcon || hasPickups) && (
-        <span className={`map-room-content-row ${hasRoomIcon ? 'has-room-icon' : 'pickup-only'}`}>
+        <span className={`map-room-content-row ${contentClass}`}>
           {hasRoomIcon && (
             <span className="map-room-type-icon">
-              <RoomTypeSprite type={room.type} fitSize={hasPickups ? 24 : 36} />
+              <RoomTypeSprite type={room.type} fitSize={splitContent ? 24 : 36} />
             </span>
           )}
-          {hasPickups && <RoomPickupLayer pickups={room.pickups} />}
+          {hasPickups && <RoomPickupLayer pickups={room.pickups} layout={pickupLayout} />}
         </span>
       )}
     </div>

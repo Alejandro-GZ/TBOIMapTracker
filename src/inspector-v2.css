@@ -10,13 +10,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   overflow: hidden;
   pointer-events: none;
 }
 
-.map-room-content-row.has-room-icon {
+/* Only split the room when there is actually something to show on the right.
+ * Icon-only rooms stay exactly centered, matching Isaac's minimap. */
+.map-room-content-row.split-content {
   justify-content: space-between;
+}
+
+.map-room-content-row.icon-only {
+  justify-content: center;
 }
 
 .map-room-content-row .map-room-type-icon {
@@ -43,17 +49,25 @@
   flex: 0 1 auto;
   min-width: 0;
   max-width: 44%;
-  height: 100%;
+  max-height: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 1px;
   overflow: hidden;
 }
 
 .map-room-content-row.pickup-only .room-pickup-layer {
   max-width: 100%;
-  justify-content: center;
+  max-height: 100%;
+}
+
+.room-pickup-layer.pickup-layout-row {
+  flex-direction: row;
+}
+
+.room-pickup-layer.pickup-layout-column {
+  flex-direction: column;
 }
 
 .room-pickup-layer .room-pickup-token {
@@ -67,13 +81,30 @@
 .room-pickup-layer .room-pickup-overflow {
   flex: 0 0 auto;
   min-width: 12px;
-  padding-right: 1px;
-  color: #efe7da;
+  padding: 1px 2px;
+  color: #fff3d8;
+  background: rgba(24, 12, 7, .76);
   font-family: 'PF Tempesta Seven Condensed', 'Courier New', monospace;
-  font-size: 7px;
-  line-height: 1;
-  text-shadow: 1px 1px #000;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 10px;
+  letter-spacing: -.02em;
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
   white-space: nowrap;
+}
+
+/* Atlas markers must never inherit/reuse a room recolour. This is especially
+ * important for the first structure row (beggars through Mom's Dressing Table). */
+.room-pickup-layer .pickup-sprite,
+.content-token .pickup-sprite,
+.content-picker-option .pickup-sprite,
+.room-pickup-layer .minimap-icon-sprite,
+.content-token .minimap-icon-sprite,
+.content-picker-option .minimap-icon-sprite {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
 }
 
 /* Mark follows the actual silhouette instead of drawing a rectangular box. */

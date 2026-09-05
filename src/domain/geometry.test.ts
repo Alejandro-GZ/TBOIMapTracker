@@ -6,6 +6,7 @@ import {
   getRoomCells,
   getRoomConnections,
   getShapeBounds,
+  getShapeConnectionDirections,
   getShapeVisualCenter,
   gridIndex,
 } from './geometry';
@@ -136,5 +137,38 @@ describe('Isaac level geometry', () => {
     const existing = room({ id: 'existing', anchor: { x: 4, y: 4 } });
     const resized = room({ id: 'existing', anchor: { x: 4, y: 4 }, shape: '2x1' });
     expect(canPlaceRoom([existing], resized, existing.id)).toBe(true);
+  });
+
+  it('uses the same narrow-room door directions as Isaac', () => {
+    expect(getShapeConnectionDirections('IH')).toEqual(['left', 'right']);
+    expect(getShapeConnectionDirections('IIH')).toEqual(['left', 'right']);
+    expect(getShapeConnectionDirections('IV')).toEqual(['up', 'down']);
+    expect(getShapeConnectionDirections('IIV')).toEqual(['up', 'down']);
+  });
+
+  it('blocks neighbors on the closed sides of horizontal narrow rooms', () => {
+    const narrow = room({ id: 'narrow', anchor: { x: 5, y: 5 }, shape: 'IH' });
+    expect(canPlaceRoom([narrow], room({ id: 'left', anchor: { x: 4, y: 5 } }))).toBe(true);
+    expect(canPlaceRoom([narrow], room({ id: 'right', anchor: { x: 6, y: 5 } }))).toBe(true);
+    expect(canPlaceRoom([narrow], room({ id: 'above', anchor: { x: 5, y: 4 } }))).toBe(false);
+    expect(canPlaceRoom([narrow], room({ id: 'below', anchor: { x: 5, y: 6 } }))).toBe(false);
+  });
+
+  it('blocks neighbors on the closed sides of vertical narrow rooms', () => {
+    const narrow = room({ id: 'narrow', anchor: { x: 5, y: 5 }, shape: 'IV' });
+    expect(canPlaceRoom([narrow], room({ id: 'above', anchor: { x: 5, y: 4 } }))).toBe(true);
+    expect(canPlaceRoom([narrow], room({ id: 'below', anchor: { x: 5, y: 6 } }))).toBe(true);
+    expect(canPlaceRoom([narrow], room({ id: 'left', anchor: { x: 4, y: 5 } }))).toBe(false);
+    expect(canPlaceRoom([narrow], room({ id: 'right', anchor: { x: 6, y: 5 } }))).toBe(false);
+  });
+
+  it('applies the same closed-side rule to IIH and IIV footprints', () => {
+    const horizontal = room({ id: 'h', anchor: { x: 4, y: 4 }, shape: 'IIH' });
+    expect(canPlaceRoom([horizontal], room({ id: 'h-top', anchor: { x: 5, y: 3 } }))).toBe(false);
+    expect(canPlaceRoom([horizontal], room({ id: 'h-right', anchor: { x: 6, y: 4 } }))).toBe(true);
+
+    const vertical = room({ id: 'v', anchor: { x: 8, y: 4 }, shape: 'IIV' });
+    expect(canPlaceRoom([vertical], room({ id: 'v-left', anchor: { x: 7, y: 5 } }))).toBe(false);
+    expect(canPlaceRoom([vertical], room({ id: 'v-bottom', anchor: { x: 8, y: 6 } }))).toBe(true);
   });
 });

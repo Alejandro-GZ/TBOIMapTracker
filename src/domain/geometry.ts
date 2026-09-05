@@ -48,9 +48,48 @@ const SHAPE_OFFSETS: Record<RoomShapeId, GridPoint[]> = {
   ],
 };
 
+export type CardinalDirection = 'left' | 'right' | 'up' | 'down';
+
+const DIRECTION_VECTORS: Record<CardinalDirection, GridPoint> = {
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+  up: { x: 0, y: -1 },
+  down: { x: 0, y: 1 },
+};
+
+const OPPOSITE_DIRECTION: Record<CardinalDirection, CardinalDirection> = {
+  left: 'right',
+  right: 'left',
+  up: 'down',
+  down: 'up',
+};
+
+const ALL_DIRECTIONS = Object.keys(DIRECTION_VECTORS) as CardinalDirection[];
+
+/**
+ * Basement Renovator mirrors the game's valid door slots for narrow rooms:
+ * IH/IIH only expose LEFT/RIGHT while IV/IIV only expose UP/DOWN. Treating
+ * this as placement geometry prevents impossible neighbors rather than merely
+ * hiding a connection after the fact.
+ */
+const SHAPE_CONNECTION_DIRECTIONS: Partial<Record<RoomShapeId, readonly CardinalDirection[]>> = {
+  IH: ['left', 'right'],
+  IIH: ['left', 'right'],
+  IV: ['up', 'down'],
+  IIV: ['up', 'down'],
+};
+
 export const coordinateKey = ({ x, y }: GridPoint) => `${x}:${y}`;
 
 export const getShapeOffsets = (shape: RoomShapeId) => SHAPE_OFFSETS[shape];
+
+export const getShapeConnectionDirections = (shape: RoomShapeId): readonly CardinalDirection[] =>
+  SHAPE_CONNECTION_DIRECTIONS[shape] ?? ALL_DIRECTIONS;
+
+export const isShapeConnectionDirectionAllowed = (
+  shape: RoomShapeId,
+  direction: CardinalDirection,
+) => getShapeConnectionDirections(shape).includes(direction);
 
 export const getShapeBounds = (shape: RoomShapeId) => {
   const offsets = SHAPE_OFFSETS[shape];
@@ -216,34 +255,51 @@ export const buildOccupancy = (rooms: Room[]) => {
   return result;
 };
 
+const canTouchAcrossBoundary = (
+  roomA: Pick<Room, 'shape'>,
+  directionFromA: CardinalDirection,
+  roomB: Pick<Room, 'shape'>,
+) => isShapeConnectionDirectionAllowed(roomA.shape, directionFromA)
+  && isShapeConnectionDirectionAllowed(roomB.shape, OPPOSITE_DIRECTION[directionFromA]);
+
 export const canPlaceRoom = (rooms: Room[], candidate: Room, ignoreRoomId?: string) => {
-  const occupied = new Set<string>();
-  for (const room of rooms) {
-    if (room.id === ignoreRoomId) continue;
-    for (const cell of getRoomCells(room)) occupied.add(coordinateKey(cell));
+  const otherRooms = rooms.filter((room) => room.id !== ignoreRoomId);
+  const occupancy = buildOccupancy(otherRooms);
+  const candidateCells = getRoomCells(candidate);
+
+  if (!candidateCells.every(
+    (cell) => isInsideGrid(cell) && !occupancy.has(coordinateKey(cell)),
+  )) return false;
+
+  for (const cell of candidateCells) {
+    for (const direction of ALL_DIRECTIONS) {
+      const vector = DIRECTION_VECTORS[direction];
+      const other = occupancy.get(coordinateKey({
+        x: cell.x + vector.x,
+        y: cell.y + vector.y,
+      }));
+      if (other && !canTouchAcrossBoundary(candidate, direction, other)) return false;
+    }
   }
 
-  return getRoomCells(candidate).every(
-    (cell) => isInsideGrid(cell) && !occupied.has(coordinateKey(cell)),
-  );
+  return true;
 };
 
 export const countUniqueAdjacencies = (room: Room, rooms: Room[]) => {
   const occupancy = buildOccupancy(rooms);
   const neighbors = new Set<string>();
-  const directions = [
-    { x: -1, y: 0 },
-    { x: 1, y: 0 },
-    { x: 0, y: -1 },
-    { x: 0, y: 1 },
-  ];
 
   for (const cell of getRoomCells(room)) {
-    for (const direction of directions) {
+    for (const direction of ALL_DIRECTIONS) {
+      const vector = DIRECTION_VECTORS[direction];
       const other = occupancy.get(
-        coordinateKey({ x: cell.x + direction.x, y: cell.y + direction.y }),
+        coordinateKey({ x: cell.x + vector.x, y: cell.y + vector.y }),
       );
-      if (other && other.id !== room.id) neighbors.add(other.id);
+      if (
+        other
+        && other.id !== room.id
+        && canTouchAcrossBoundary(room, direction, other)
+      ) neighbors.add(other.id);
     }
   }
   return neighbors.size;
@@ -257,10 +313,10 @@ export interface RoomConnection {
 }
 
 /**
- * Every boundary where two distinct room footprints touch is a visual minimap
- * connection. Internal boundaries inside a multi-cell room are intentionally
- * ignored. Keeping this as geometry (instead of CSS generated from hit cells)
- * makes doors testable and lets the interaction grid stay completely invisible.
+ * Report only boundaries which correspond to real door directions. Narrow
+ * IH/IIH rooms never connect vertically; IV/IIV rooms never connect
+ * horizontally. This also keeps imported legacy layouts from reporting an
+ * impossible adjacency even if they predate placement validation.
  */
 export const getRoomConnections = (rooms: Room[]): RoomConnection[] => {
   const occupancy = buildOccupancy(rooms);
@@ -272,12 +328,20 @@ export const getRoomConnections = (rooms: Room[]): RoomConnection[] => {
       if (!room) continue;
 
       const right = occupancy.get(coordinateKey({ x: x + 1, y }));
-      if (right && right.id !== room.id) {
+      if (
+        right
+        && right.id !== room.id
+        && canTouchAcrossBoundary(room, 'right', right)
+      ) {
         result.push({ point: { x, y }, direction: 'right', roomA: room.id, roomB: right.id });
       }
 
       const down = occupancy.get(coordinateKey({ x, y: y + 1 }));
-      if (down && down.id !== room.id) {
+      if (
+        down
+        && down.id !== room.id
+        && canTouchAcrossBoundary(room, 'down', down)
+      ) {
         result.push({ point: { x, y }, direction: 'down', roomA: room.id, roomB: down.id });
       }
     }
