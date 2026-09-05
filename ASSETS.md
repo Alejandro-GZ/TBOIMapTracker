@@ -29,6 +29,10 @@ Runtime room mappings include Normal/Start, Shop, Treasure, Boss/Miniboss, Secre
 
 The contents selector exposes the associated pickup and structure sprites from the uploaded set. Chest `*ALT` images are used as the small on-map representation of their corresponding chest while the primary image is used in controls/list rows.
 
+## Tracker app icon
+
+`public/app-icon.png` is the Blue Map icon supplied for this project. It is used only by the TBOIMapTracker page as the header mark and favicon; it does not modify the favicon of the root `alejandro-gz.github.io` site.
+
 ## Paper menu chrome — local project assets
 
 The current paper UI uses only the three local images supplied specifically for this tracker:
