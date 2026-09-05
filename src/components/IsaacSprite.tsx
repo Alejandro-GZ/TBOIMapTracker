@@ -52,6 +52,7 @@ const ROOM_TYPE_VALUES: Partial<Record<RoomTypeId, number>> = {
 
 const ROOM_TYPE_VARIANT_CLASS: Partial<Record<RoomTypeId, string>> = {
   blue: 'isaac-room-type-blue',
+  red: 'isaac-room-type-red',
   'black-market': 'isaac-room-type-black-market',
 };
 
@@ -64,7 +65,7 @@ export const getCanonicalRoomShapeUrl = (shape: RoomShapeId) =>
   `${ISAAC_DOCS_IMAGES}/roomshapes/${ROOM_SHAPE_VALUES[shape]}.png`;
 
 export const getCanonicalRoomTypeUrl = (type: RoomTypeId) => {
-  if (type === 'normal' || type === 'blue') return ROOM_DEFAULT_ICON;
+  if (type === 'normal' || type === 'blue' || type === 'red') return ROOM_DEFAULT_ICON;
   const value = ROOM_TYPE_VALUES[type];
   return value ? `${ISAAC_DOCS_IMAGES}/roomtypes/${value}.png` : null;
 };
