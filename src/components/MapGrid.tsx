@@ -8,7 +8,7 @@ import {
 } from '../domain/geometry';
 import { GRID_SIZE } from '../domain/types';
 import { useTrackerStore } from '../store/useTrackerStore';
-import { RoomTypeSprite } from './IsaacSprite';
+import { RoomShapeSprite, RoomTypeSprite } from './IsaacSprite';
 
 export function MapGrid() {
   const document = useTrackerStore((state) => state.document);
@@ -47,6 +47,7 @@ export function MapGrid() {
             'grid-cell',
             room ? `occupied tone-${meta?.tone}` : 'empty',
             room?.id === selectedRoomId ? 'selected' : '',
+            isPrimary ? 'room-primary' : '',
             sameRight ? 'same-right' : '',
             sameDown ? 'same-down' : '',
           ].join(' ')}
@@ -79,8 +80,9 @@ export function MapGrid() {
           aria-label={room ? `${meta?.label ?? 'Room'} at ${x}, ${y}` : `Empty cell ${x}, ${y}`}
         >
           {showIndices && <span className="cell-index">{gridIndex(point)}</span>}
+          {room && isPrimary && <RoomShapeSprite shape={room.shape} />}
           {room && isPrimary && (
-            <span className="room-mark">
+            <span className={`room-mark room-mark-${room.shape}`}>
               <RoomTypeSprite
                 type={room.type}
                 fallback={meta?.icon ?? '•'}
