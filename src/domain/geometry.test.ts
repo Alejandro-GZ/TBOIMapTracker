@@ -1,0 +1,40 @@
+import { describe, expect, it } from 'vitest';
+import { canPlaceRoom, getRoomCells, gridIndex } from './geometry';
+import type { Room } from './types';
+
+const room = (overrides: Partial<Room> = {}): Room => ({
+  id: 'room-a',
+  anchor: { x: 6, y: 6 },
+  shape: '1x1',
+  type: 'normal',
+  visited: false,
+  notes: '',
+  pickups: [],
+  ...overrides,
+});
+
+describe('Isaac level geometry', () => {
+  it('maps the centered 13x13 cell to grid index 84', () => {
+    expect(gridIndex({ x: 6, y: 6 })).toBe(84);
+  });
+
+  it('uses three occupied cells for L rooms', () => {
+    expect(getRoomCells(room({ shape: 'LTL' }))).toHaveLength(3);
+  });
+
+  it('rejects a 2x2 room that crosses the 13x13 boundary', () => {
+    expect(canPlaceRoom([], room({ anchor: { x: 12, y: 12 }, shape: '2x2' }))).toBe(false);
+  });
+
+  it('rejects overlap with an existing room', () => {
+    const existing = room({ id: 'existing', anchor: { x: 4, y: 4 }, shape: '2x1' });
+    const candidate = room({ id: 'candidate', anchor: { x: 5, y: 4 } });
+    expect(canPlaceRoom([existing], candidate)).toBe(false);
+  });
+
+  it('allows resizing a room when ignoring its own footprint', () => {
+    const existing = room({ id: 'existing', anchor: { x: 4, y: 4 } });
+    const resized = room({ id: 'existing', anchor: { x: 4, y: 4 }, shape: '2x1' });
+    expect(canPlaceRoom([existing], resized, existing.id)).toBe(true);
+  });
+});

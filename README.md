@@ -1,3 +1,108 @@
 # TBOI Map Tracker
 
-Visual floor-layout tracker for *The Binding of Isaac: Repentance+*.
+A fast visual floor-layout and dropped-pickup tracker for **The Binding of Isaac: Repentance+**.
+
+> Live site: `https://alejandro-gz.github.io/TBOIMapTracker/`
+
+## Why this exists
+
+Isaac runs often leave useful resources behind: hearts, bombs, keys, chests, cards, pills, trinkets, pedestals and reroll opportunities. TBOI Map Tracker lets you reconstruct a floor quickly and attach that information directly to each room instead of keeping it in your head.
+
+## Isaac-aware map model
+
+- The on-grid floor is **13 × 13 cells** (169 grid indices, `0..168`).
+- Main, secondary and Death Certificate dimensions are represented as **separate 13 × 13 grids**, matching the game's dimension model instead of pretending the map is larger.
+- Supports the room shapes exposed by the Repentance API: `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2` and the four L variants.
+- Placement is rejected if a shape would overlap another room or leave the grid.
+- Devil, Angel, Black Market and I AM ERROR can be represented visually, but are flagged in the UI as **off-grid internally**.
+- The default map starts with a Starting Room at the center cell (`6,6`, grid index `84`) for fast manual reconstruction.
+
+References used for the level model:
+
+- https://wofsauge.github.io/IsaacDocs/rep/RoomDescriptor.html
+- https://wofsauge.github.io/IsaacDocs/rep/Level.html
+- https://wofsauge.github.io/IsaacDocs/rep/enums/RoomShape.html
+- https://wofsauge.github.io/IsaacDocs/rep/enums/GridRooms.html
+
+## Features
+
+- 13 × 13 room editor.
+- Click-to-place rooms using a room-type palette.
+- Drag rooms to reposition them.
+- Arrow nudges in the inspector for precise movement.
+- Real multi-cell room footprints and L rooms.
+- Room type, visited state and notes.
+- Dropped pickup tracking per room.
+- Quick `+1` actions for coins, keys, bombs, hearts, chests and batteries.
+- Generic support for cards, pills, runes, trinkets and collectibles/pedestals.
+- Main / secondary / Death Certificate dimension tabs.
+- Optional raw grid indices.
+- Local autosave through `localStorage`.
+- Import/export of portable `.tboimap.json` files.
+- Responsive desktop/tablet UI.
+- CI with typecheck, tests and production build.
+- GitHub Pages deployment workflow.
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+Validation:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+## Data format
+
+The app stores a versioned document with independent room arrays per dimension:
+
+```json
+{
+  "version": 1,
+  "name": "Run 1",
+  "floor": "Basement II",
+  "seed": "ABCD EFGH",
+  "dimensions": {
+    "main": [
+      {
+        "anchor": { "x": 6, "y": 6 },
+        "shape": "1x1",
+        "type": "start",
+        "visited": true,
+        "pickups": []
+      }
+    ],
+    "secondary": [],
+    "death-certificate": []
+  }
+}
+```
+
+The tracker uses a top-left **tracker anchor** for its shape geometry. For some engine-level L-room details (notably the special `GridIndex` semantics of `ROOMSHAPE_LTL`), do not treat the exported anchor as a byte-for-byte replacement for `RoomDescriptor.GridIndex`.
+
+## Minimap sprites / game assets
+
+No copyrighted Isaac sprites are committed to this repository. The UI uses its own lightweight symbols and is deliberately data-driven so a sprite skin can be layered on later.
+
+For an exact personal-game skin, extract your own Repentance+ resources with the game's `ResourceExtractor` and map them locally. This keeps the project distributable while allowing a faithful appearance for users who own the game.
+
+## GitHub Pages
+
+`vite.config.ts` sets the project-site base path to `/TBOIMapTracker/`. Every push to `main` builds `dist/` and deploys it with the official GitHub Pages Actions flow.
+
+If Pages has never been enabled for the repository, enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once. After that, pushes to `main` deploy automatically.
+
+## Roadmap
+
+- Sprite-skin adapter for user-extracted Repentance+ minimap assets.
+- Multiple floors grouped into a complete run.
+- Undo / redo and keyboard room-type shortcuts.
+- Optional secret-room candidate helpers (clearly marked as heuristics, not guarantees).
+- Shareable compressed map URLs.
+- Item database integration for collectible names/icons without coupling the editor core to one provider.
