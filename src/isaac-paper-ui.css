@@ -270,9 +270,11 @@
   box-shadow: none !important;
 }
 
-.map-door::after {
-  content: '';
+.map-door-fill {
   position: absolute;
+  display: block;
+  margin: 0;
+  padding: 0;
   background: #686965;
 }
 
@@ -283,7 +285,7 @@
   transform: translateX(9px);
 }
 
-.map-door-right::after {
+.map-door-right .map-door-fill {
   left: 1px;
   right: 1px;
   top: 3px;
@@ -297,7 +299,7 @@
   transform: translateY(9px);
 }
 
-.map-door-down::after {
+.map-door-down .map-door-fill {
   left: 3px;
   right: 3px;
   top: 1px;
