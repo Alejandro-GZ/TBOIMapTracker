@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { getShapeBounds, getShapeVisualCenter } from '../domain/geometry';
 import { ROOM_TYPES_WITHOUT_MAP_ICON } from '../domain/minimapIcons';
 import type { Room, RoomShapeId } from '../domain/types';
@@ -32,6 +32,23 @@ const ROOM_ART_SCALE: Record<RoomShapeId, number> = {
 };
 
 const COLUMN_PICKUP_SHAPES: readonly RoomShapeId[] = ['1x1', 'IV', '1x2', 'IIV'];
+const PORTRAIT_PHONE_QUERY = '(orientation: portrait) and (max-width: 699px)';
+
+function usePortraitPhone() {
+  const [isPortraitPhone, setIsPortraitPhone] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia(PORTRAIT_PHONE_QUERY).matches,
+  );
+
+  useEffect(() => {
+    const query = window.matchMedia(PORTRAIT_PHONE_QUERY);
+    const update = () => setIsPortraitPhone(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  return isPortraitPhone;
+}
 
 export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const bounds = getShapeBounds(room.shape);
@@ -40,6 +57,14 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const hasPickups = room.pickups.length > 0;
   const splitContent = hasRoomIcon && hasPickups;
   const pickupLayout = COLUMN_PICKUP_SHAPES.includes(room.shape) ? 'column' : 'row';
+  const portraitPhone = usePortraitPhone();
+
+  /* Desktop/landscape retain the established 36/24 px targets. Portrait uses
+   * smaller targets so MiniMAPI frames top out at an integer ×2 scale instead
+   * of growing wider/taller than a phone grid cell. */
+  const roomIconFitSize = portraitPhone
+    ? (splitContent ? 18 : 22)
+    : (splitContent ? 24 : 36);
 
   const style = {
     gridColumn: `${room.anchor.x + 1} / span ${bounds.width}`,
@@ -65,6 +90,7 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
       data-room-shape={room.shape}
       data-room-type={room.type}
       data-room-marked={room.marked ? 'true' : 'false'}
+      data-map-sprite-profile={portraitPhone ? 'portrait-phone' : 'default'}
       aria-hidden="true"
     >
       <RoomShapeSprite shape={room.shape} />
@@ -72,10 +98,10 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
         <span className={`map-room-content-row ${contentClass}`}>
           {hasRoomIcon && (
             <span className="map-room-type-icon">
-              <RoomTypeSprite type={room.type} fitSize={splitContent ? 24 : 36} />
+              <RoomTypeSprite type={room.type} fitSize={roomIconFitSize} />
             </span>
           )}
-          {hasPickups && <RoomPickupLayer pickups={room.pickups} layout={pickupLayout} />}
+          {hasPickups && <RoomPickupLayer pickups={room.pickups} layout={pickupLayout} compact={portraitPhone} />}
         </span>
       )}
     </div>
