@@ -60,10 +60,10 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const portraitPhone = usePortraitPhone();
 
   /* Desktop/landscape retain the established 36/24 px targets. Portrait uses
-   * smaller targets so MiniMAPI frames top out at an integer ×2 scale instead
-   * of growing wider/taller than a phone grid cell. */
+   * targets below 21 px so every 7–9 px MiniMAPI room frame is capped at an
+   * integer ×2 scale instead of growing wider/taller than a phone grid cell. */
   const roomIconFitSize = portraitPhone
-    ? (splitContent ? 18 : 22)
+    ? (splitContent ? 18 : 20)
     : (splitContent ? 24 : 36);
 
   const style = {
