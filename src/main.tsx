@@ -14,6 +14,7 @@ import './room-mark-overrides.css';
 import './header-icon-polish.css';
 import './map-tools.css';
 import './mobile.css';
+import './mobile-polish.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
