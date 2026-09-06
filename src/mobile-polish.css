@@ -56,6 +56,28 @@
   }
 }
 
+/* Portrait map cells are much narrower than desktop/landscape cells. The
+ * renderer already selects smaller integer-scaled atlas frames in this mode;
+ * keep the pickup layout compact too so its token never consumes the complete
+ * room width/height or pushes visible pixels against the room edge. */
+@media (orientation: portrait) and (max-width: 699px) {
+  .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-layer {
+    bottom: 10%;
+    max-width: 80%;
+    gap: 0;
+  }
+
+  .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-token {
+    width: 16px;
+    height: 16px;
+  }
+
+  .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-overflow {
+    font-size: 6px;
+    line-height: 7px;
+  }
+}
+
 /* Landscape is intentionally a different composition, not a shorter version
  * of portrait. The map keeps the centre, editing tools move to a right rail,
  * and contextual sheets become side drawers. */
