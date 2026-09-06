@@ -58,22 +58,50 @@
 
 /* Portrait map cells are much narrower than desktop/landscape cells. The
  * renderer selects lower integer atlas scales in this mode; keep the pickup
- * footprint compact too so visible pixels retain clear margins on all sides. */
+ * footprint compact too so visible pixels retain clear margins on all sides.
+ * Extra pickup counts are overlaid inside that same footprint instead of
+ * consuming a second flex row/column, which prevents +N from being clipped in
+ * either pickup distribution. */
 @media (orientation: portrait) and (max-width: 699px) {
   .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-layer {
-    bottom: 12%;
-    max-width: 72%;
+    position: relative !important;
+    bottom: auto !important;
+    width: 12px;
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+    max-width: 12px;
+    max-height: 12px;
+    flex: 0 0 12px;
     gap: 0;
+    overflow: hidden !important;
   }
 
   .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-token {
     width: 12px;
     height: 12px;
+    min-width: 12px;
+    min-height: 12px;
   }
 
   .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-overflow {
-    font-size: 6px;
-    line-height: 7px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    min-width: 0;
+    max-width: 12px;
+    padding: 0 1px;
+    overflow: hidden;
+    color: #fff3d8;
+    background: rgba(24, 12, 7, .9);
+    font-size: 5px;
+    font-weight: 700;
+    line-height: 6px;
+    letter-spacing: -.05em;
+    text-align: center;
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
   }
 }
 
