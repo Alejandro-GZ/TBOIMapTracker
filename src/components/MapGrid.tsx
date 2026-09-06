@@ -23,10 +23,41 @@ interface PanGesture {
   originY: number;
 }
 
+interface PaintGesture {
+  pointerId: number;
+  lastPoint: GridPoint;
+}
+
+interface MoveGesture {
+  pointerId: number;
+  roomId: string;
+  startX: number;
+  startY: number;
+  offsetX: number;
+  offsetY: number;
+  lastAnchor: GridPoint;
+  moved: boolean;
+}
+
+interface PointerPosition {
+  x: number;
+  y: number;
+}
+
+interface PinchGesture {
+  pointerIds: [number, number];
+  startDistance: number;
+  startMidpoint: PointerPosition;
+  startZoom: number;
+  startPan: PointerPosition;
+}
+
 interface MapGridProps {
   onImport: () => void;
   onExport: () => void;
   onNew: () => void;
+  onRoomActivate?: (roomId: string) => void;
+  resetViewSignal?: number;
 }
 
 const clamp = (value: number, min: number, max: number) =>
@@ -36,6 +67,14 @@ const appendPathPoint = (path: GridPoint[], point: GridPoint) =>
   path.some((candidate) => candidate.x === point.x && candidate.y === point.y)
     ? path
     : [...path, point];
+
+const distance = (a: PointerPosition, b: PointerPosition) =>
+  Math.hypot(a.x - b.x, a.y - b.y);
+
+const midpoint = (a: PointerPosition, b: PointerPosition): PointerPosition => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+});
 
 function ToolIcon({ children }: { children: ReactNode }) {
   return (
@@ -87,7 +126,13 @@ const NEW_ICON = (
   </ToolIcon>
 );
 
-export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
+export function MapGrid({
+  onImport,
+  onExport,
+  onNew,
+  onRoomActivate,
+  resetViewSignal = 0,
+}: MapGridProps) {
   const document = useTrackerStore((state) => state.document);
   const activeDimension = useTrackerStore((state) => state.activeDimension);
   const selectedRoomId = useTrackerStore((state) => state.selectedRoomId);
@@ -101,12 +146,18 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
   const setMapTool = useTrackerStore((state) => state.setMapTool);
   const setShowIndices = useTrackerStore((state) => state.setShowIndices);
   const [dragSelection, setDragSelection] = useState<DragSelection | null>(null);
+  const [movePreview, setMovePreview] = useState<GridPoint | null>(null);
   const [zoom, setZoom] = useState(1);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const panGestureRef = useRef<PanGesture | null>(null);
+  const paintGestureRef = useRef<PaintGesture | null>(null);
+  const moveGestureRef = useRef<MoveGesture | null>(null);
+  const pinchGestureRef = useRef<PinchGesture | null>(null);
+  const activeTouchPointersRef = useRef(new Map<number, PointerPosition>());
+  const consumedPointersRef = useRef(new Set<number>());
 
   const rooms = document.dimensions[activeDimension];
   const occupancy = useMemo(() => buildOccupancy(rooms), [rooms]);
@@ -135,18 +186,31 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
 
   useEffect(() => {
     setDragSelection(null);
+    setMovePreview(null);
+    paintGestureRef.current = null;
+    moveGestureRef.current = null;
   }, [mapTool]);
 
   useEffect(() => {
-    const clearDanglingSelection = () => setDragSelection(null);
-    window.addEventListener('pointerup', clearDanglingSelection);
-    window.addEventListener('pointercancel', clearDanglingSelection);
-    window.addEventListener('blur', clearDanglingSelection);
-    return () => {
-      window.removeEventListener('pointerup', clearDanglingSelection);
-      window.removeEventListener('pointercancel', clearDanglingSelection);
-      window.removeEventListener('blur', clearDanglingSelection);
+    setZoom(1);
+    setZoomOrigin({ x: 50, y: 50 });
+    setPan({ x: 0, y: 0 });
+  }, [resetViewSignal]);
+
+  useEffect(() => {
+    const clearDanglingGestures = () => {
+      setDragSelection(null);
+      setMovePreview(null);
+      paintGestureRef.current = null;
+      moveGestureRef.current = null;
+      panGestureRef.current = null;
+      pinchGestureRef.current = null;
+      activeTouchPointersRef.current.clear();
+      consumedPointersRef.current.clear();
+      setIsPanning(false);
     };
+    window.addEventListener('blur', clearDanglingGestures);
+    return () => window.removeEventListener('blur', clearDanglingGestures);
   }, []);
 
   useEffect(() => {
@@ -168,6 +232,16 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
     return () => viewport.removeEventListener('wheel', handleWheel);
   }, []);
 
+  const gridPointAt = (clientX: number, clientY: number): GridPoint | null => {
+    const element = window.document.elementFromPoint(clientX, clientY);
+    const cell = element?.closest('[data-grid-x][data-grid-y]') as HTMLElement | null;
+    if (!cell) return null;
+    const x = Number(cell.dataset.gridX);
+    const y = Number(cell.dataset.gridY);
+    if (!Number.isInteger(x) || !Number.isInteger(y)) return null;
+    return { x, y };
+  };
+
   const finishRoomGesture = (point: GridPoint) => {
     if (!dragSelection || mapTool !== 'paint') return;
 
@@ -183,14 +257,88 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
     setZoom(clamp(next, 0.65, 2.2));
   };
 
-  const finishPan = (pointerId: number) => {
-    const gesture = panGestureRef.current;
-    if (!gesture || gesture.pointerId !== pointerId) return;
-
+  const releasePointer = (pointerId: number) => {
     const viewport = viewportRef.current;
     if (viewport?.hasPointerCapture(pointerId)) viewport.releasePointerCapture(pointerId);
+  };
+
+  const cancelDirectGestures = () => {
+    paintGestureRef.current = null;
+    moveGestureRef.current = null;
     panGestureRef.current = null;
-    setIsPanning(false);
+    setDragSelection(null);
+    setMovePreview(null);
+  };
+
+  const beginPinch = () => {
+    const entries = [...activeTouchPointersRef.current.entries()];
+    if (entries.length < 2) return;
+    const [[firstId, first], [secondId, second]] = entries;
+    const viewport = viewportRef.current;
+    const center = midpoint(first, second);
+    if (viewport) {
+      const rect = viewport.getBoundingClientRect();
+      setZoomOrigin({
+        x: clamp(((center.x - rect.left) / rect.width) * 100, 0, 100),
+        y: clamp(((center.y - rect.top) / rect.height) * 100, 0, 100),
+      });
+    }
+    cancelDirectGestures();
+    pinchGestureRef.current = {
+      pointerIds: [firstId, secondId],
+      startDistance: Math.max(1, distance(first, second)),
+      startMidpoint: center,
+      startZoom: zoom,
+      startPan: pan,
+    };
+    setIsPanning(true);
+  };
+
+  const finishPointer = (pointerId: number, clientX: number, clientY: number, cancelled = false) => {
+    activeTouchPointersRef.current.delete(pointerId);
+
+    const pinch = pinchGestureRef.current;
+    if (pinch?.pointerIds.includes(pointerId)) {
+      pinchGestureRef.current = null;
+      setIsPanning(false);
+      releasePointer(pointerId);
+      consumedPointersRef.current.delete(pointerId);
+      return;
+    }
+
+    const paint = paintGestureRef.current;
+    if (paint?.pointerId === pointerId) {
+      paintGestureRef.current = null;
+      if (!cancelled) finishRoomGesture(gridPointAt(clientX, clientY) ?? paint.lastPoint);
+      else setDragSelection(null);
+      releasePointer(pointerId);
+      consumedPointersRef.current.delete(pointerId);
+      return;
+    }
+
+    const moving = moveGestureRef.current;
+    if (moving?.pointerId === pointerId) {
+      moveGestureRef.current = null;
+      setMovePreview(null);
+      if (!cancelled) {
+        if (moving.moved) moveRoom(moving.roomId, moving.lastAnchor);
+        else {
+          selectRoom(moving.roomId);
+          onRoomActivate?.(moving.roomId);
+        }
+      }
+      releasePointer(pointerId);
+      consumedPointersRef.current.delete(pointerId);
+      return;
+    }
+
+    const panning = panGestureRef.current;
+    if (panning?.pointerId === pointerId) {
+      panGestureRef.current = null;
+      setIsPanning(false);
+      releasePointer(pointerId);
+    }
+    consumedPointersRef.current.delete(pointerId);
   };
 
   const cells = [];
@@ -201,6 +349,7 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
       const room = occupancy.get(key);
       const meta = room ? getRoomTypeMeta(room.type) : null;
       const inDragPreview = Boolean(dragPreview?.keys.has(key));
+      const isMoveTarget = movePreview?.x === x && movePreview?.y === y;
 
       cells.push(
         <button
@@ -216,63 +365,45 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
             room?.id === selectedRoomId ? 'selected' : '',
             inDragPreview ? 'drag-preview' : '',
             inDragPreview && dragPreview?.invalid ? 'drag-invalid' : '',
+            isMoveTarget ? 'move-target' : '',
           ].join(' ')}
-          draggable={Boolean(room) && mapTool === 'move' && !dragSelection}
           onPointerDown={(event) => {
             if (event.button !== 0) return;
 
             if (room) {
+              consumedPointersRef.current.add(event.pointerId);
               if (mapTool === 'erase') {
                 event.preventDefault();
                 deleteRoom(room.id);
               } else if (mapTool === 'move') {
+                event.preventDefault();
                 selectRoom(room.id);
+                moveGestureRef.current = {
+                  pointerId: event.pointerId,
+                  roomId: room.id,
+                  startX: event.clientX,
+                  startY: event.clientY,
+                  offsetX: point.x - room.anchor.x,
+                  offsetY: point.y - room.anchor.y,
+                  lastAnchor: room.anchor,
+                  moved: false,
+                };
+                setMovePreview(room.anchor);
               } else {
                 event.preventDefault();
               }
               return;
             }
 
-            if (mapTool !== 'paint') {
-              if (mapTool === 'move') selectRoom(null);
+            if (mapTool === 'paint') {
+              consumedPointersRef.current.add(event.pointerId);
+              event.preventDefault();
+              paintGestureRef.current = { pointerId: event.pointerId, lastPoint: point };
+              setDragSelection({ path: [point] });
               return;
             }
 
-            event.preventDefault();
-            setDragSelection({ path: [point] });
-          }}
-          onPointerEnter={(event) => {
-            if (mapTool !== 'paint' || !dragSelection || (event.buttons & 1) === 0) return;
-            setDragSelection((current) => current
-              ? { path: appendPathPoint(current.path, point) }
-              : current);
-          }}
-          onPointerUp={(event) => {
-            if (mapTool !== 'paint' || !dragSelection || event.button !== 0) return;
-            event.preventDefault();
-            finishRoomGesture(point);
-          }}
-          onDragStart={(event) => {
-            if (!room || mapTool !== 'move') {
-              event.preventDefault();
-              return;
-            }
-            event.dataTransfer.setData('text/tboi-room', room.id);
-            event.dataTransfer.effectAllowed = 'move';
-            selectRoom(room.id);
-          }}
-          onDragOver={(event) => {
-            if (mapTool === 'move' && event.dataTransfer.types.includes('text/tboi-room')) event.preventDefault();
-          }}
-          onDrop={(event) => {
-            if (mapTool !== 'move') return;
-            event.preventDefault();
-            const roomId = event.dataTransfer.getData('text/tboi-room');
-            if (!roomId) return;
-            moveRoom(roomId, point);
-          }}
-          onClick={() => {
-            if (mapTool === 'move' && room) selectRoom(room.id);
+            if (mapTool === 'move') selectRoom(null);
           }}
           aria-label={room ? `${meta?.label ?? 'Room'} at ${x}, ${y}` : `Empty cell ${x}, ${y}`}
         >
@@ -341,9 +472,27 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
         ref={viewportRef}
         data-testid="map-viewport"
         onPointerDown={(event) => {
-          if (event.button !== 1) return;
+          if (event.pointerType === 'touch') {
+            activeTouchPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (activeTouchPointersRef.current.size >= 2) {
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              beginPinch();
+              return;
+            }
+          }
+
+          if (consumedPointersRef.current.has(event.pointerId)) {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            return;
+          }
+
+          const shouldPan = event.button === 1 || (
+            event.pointerType === 'touch' && (mapTool === 'move' || mapTool === 'erase')
+          );
+          if (!shouldPan) return;
+
           event.preventDefault();
-          event.stopPropagation();
           event.currentTarget.setPointerCapture(event.pointerId);
           panGestureRef.current = {
             pointerId: event.pointerId,
@@ -355,16 +504,62 @@ export function MapGrid({ onImport, onExport, onNew }: MapGridProps) {
           setIsPanning(true);
         }}
         onPointerMove={(event) => {
-          const gesture = panGestureRef.current;
-          if (!gesture || gesture.pointerId !== event.pointerId) return;
+          if (event.pointerType === 'touch' && activeTouchPointersRef.current.has(event.pointerId)) {
+            activeTouchPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+          }
+
+          const pinch = pinchGestureRef.current;
+          if (pinch) {
+            const first = activeTouchPointersRef.current.get(pinch.pointerIds[0]);
+            const second = activeTouchPointersRef.current.get(pinch.pointerIds[1]);
+            if (!first || !second) return;
+            event.preventDefault();
+            const center = midpoint(first, second);
+            const ratio = distance(first, second) / pinch.startDistance;
+            setZoom(clamp(pinch.startZoom * ratio, 0.65, 2.2));
+            setPan({
+              x: pinch.startPan.x + center.x - pinch.startMidpoint.x,
+              y: pinch.startPan.y + center.y - pinch.startMidpoint.y,
+            });
+            return;
+          }
+
+          const paint = paintGestureRef.current;
+          if (paint?.pointerId === event.pointerId) {
+            event.preventDefault();
+            const target = gridPointAt(event.clientX, event.clientY);
+            if (!target) return;
+            paint.lastPoint = target;
+            setDragSelection((current) => current
+              ? { path: appendPathPoint(current.path, target) }
+              : current);
+            return;
+          }
+
+          const moving = moveGestureRef.current;
+          if (moving?.pointerId === event.pointerId) {
+            event.preventDefault();
+            const hovered = gridPointAt(event.clientX, event.clientY);
+            if (!hovered) return;
+            moving.moved = moving.moved || Math.hypot(event.clientX - moving.startX, event.clientY - moving.startY) > 7;
+            moving.lastAnchor = {
+              x: hovered.x - moving.offsetX,
+              y: hovered.y - moving.offsetY,
+            };
+            setMovePreview(moving.lastAnchor);
+            return;
+          }
+
+          const panning = panGestureRef.current;
+          if (!panning || panning.pointerId !== event.pointerId) return;
           event.preventDefault();
           setPan({
-            x: gesture.originX + event.clientX - gesture.startX,
-            y: gesture.originY + event.clientY - gesture.startY,
+            x: panning.originX + event.clientX - panning.startX,
+            y: panning.originY + event.clientY - panning.startY,
           });
         }}
-        onPointerUp={(event) => finishPan(event.pointerId)}
-        onPointerCancel={(event) => finishPan(event.pointerId)}
+        onPointerUp={(event) => finishPointer(event.pointerId, event.clientX, event.clientY)}
+        onPointerCancel={(event) => finishPointer(event.pointerId, event.clientX, event.clientY, true)}
         onAuxClick={(event) => {
           if (event.button === 1) event.preventDefault();
         }}
