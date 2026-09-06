@@ -1,4 +1,4 @@
-import { devices, expect, test, type Page } from '@playwright/test';
+import { devices, expect, test, type Locator, type Page } from '@playwright/test';
 
 const iphone13 = devices['iPhone 13'];
 test.use({
@@ -26,6 +26,29 @@ async function addContent(page: Page, id: string) {
   }
   await page.getByTestId(`marker-option-${id}`).click();
   await page.getByRole('button', { name: 'Close contents picker' }).click();
+}
+
+async function expectCompactPickupCount(room: Locator, layout: 'row' | 'column') {
+  const layer = room.getByTestId('room-pickup-layer');
+  await expect(layer).toHaveAttribute('data-pickup-layout', layout);
+  await expect(layer).toHaveAttribute('data-pickup-fit-size', '10');
+
+  const badge = layer.locator('.room-pickup-overflow');
+  await expect(badge).toHaveText('+1');
+  await expect(badge).toHaveCSS('position', 'absolute');
+
+  const layerBox = await layer.boundingBox();
+  const badgeBox = await badge.boundingBox();
+  if (!layerBox || !badgeBox) throw new Error(`Portrait ${layout} pickup count is missing`);
+
+  expect(layerBox.width).toBeLessThanOrEqual(13);
+  expect(layerBox.height).toBeLessThanOrEqual(13);
+  expect(badgeBox.width).toBeGreaterThan(3);
+  expect(badgeBox.height).toBeGreaterThan(3);
+  expect(badgeBox.x).toBeGreaterThanOrEqual(layerBox.x - 0.5);
+  expect(badgeBox.y).toBeGreaterThanOrEqual(layerBox.y - 0.5);
+  expect(badgeBox.x + badgeBox.width).toBeLessThanOrEqual(layerBox.x + layerBox.width + 0.5);
+  expect(badgeBox.y + badgeBox.height).toBeLessThanOrEqual(layerBox.y + layerBox.height + 0.5);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -96,9 +119,10 @@ test('phone UI is map-first and keeps portrait room/pickup sprites inside their 
   await expect(page.getByTestId('room-inspector')).toBeVisible();
 
   await addContent(page, 'P_FULLHEART');
+  await addContent(page, 'P_PENNY');
   await expect(treasure.locator('.map-room-content-row')).toHaveClass(/split-content/);
   const pickupLayer = treasure.getByTestId('room-pickup-layer');
-  await expect(pickupLayer).toHaveAttribute('data-pickup-fit-size', '10');
+  await expectCompactPickupCount(treasure, 'column');
 
   const pickupPixels = await pickupLayer.locator('.minimap-icon-crop').boundingBox();
   const splitIconPixels = await treasure.locator('.map-room-type-icon .minimap-icon-crop').boundingBox();
@@ -119,6 +143,31 @@ test('phone UI is map-first and keeps portrait room/pickup sprites inside their 
   await page.getByTestId('mobile-tool-erase').click();
   await tapCell(page, 4, 4);
   await expect(page.locator('.map-room-visual[data-room-type="treasure"]')).toHaveCount(0);
+});
+
+test('portrait pickup count stays visible for horizontal room layouts', async ({ page }, testInfo) => {
+  await page.getByTestId('mobile-rooms-button').click();
+  await page.getByTestId('room-tool-normal').click();
+  await tapCell(page, 8, 3);
+
+  await page.getByTestId('mobile-tool-move').click();
+  await tapCell(page, 8, 3);
+  await expect(page.getByRole('dialog', { name: 'Room' })).toBeVisible();
+
+  await page.getByTestId('room-shape-button').click();
+  await expect(page.getByTestId('shape-popover')).toBeVisible();
+  await page.getByTestId('shape-option-2x1').click();
+
+  const horizontalRoom = page.locator('.map-room-visual[data-room-type="normal"][data-room-shape="2x1"]');
+  await expect(horizontalRoom).toHaveCount(1);
+  await expect(horizontalRoom).toHaveAttribute('data-map-sprite-profile', 'portrait-phone');
+
+  await addContent(page, 'P_KEY');
+  await addContent(page, 'P_BOMB');
+  await expectCompactPickupCount(horizontalRoom, 'row');
+
+  await page.getByRole('button', { name: 'Close Room' }).click();
+  await page.screenshot({ path: testInfo.outputPath('mobile-portrait-pickup-count-row.png'), fullPage: true });
 });
 
 test('mobile menu moves secondary actions off the permanent toolbar', async ({ page }) => {
