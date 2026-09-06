@@ -10,7 +10,7 @@ const safeFilename = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tboi-map';
 
 const APP_ICON_URL = '/TBOIMapTracker/app-icon.png';
-const MOBILE_QUERY = '(max-width: 699px)';
+const MOBILE_QUERY = '(max-width: 699px), (max-height: 500px) and (max-width: 950px)';
 
 type MobileSheetId = 'rooms' | 'inspector' | 'run' | 'menu' | null;
 
