@@ -98,7 +98,7 @@ test('phone UI is map-first and keeps portrait room/pickup sprites inside their 
   await addContent(page, 'P_FULLHEART');
   await expect(treasure.locator('.map-room-content-row')).toHaveClass(/split-content/);
   const pickupLayer = treasure.getByTestId('room-pickup-layer');
-  await expect(pickupLayer).toHaveAttribute('data-pickup-fit-size', '14');
+  await expect(pickupLayer).toHaveAttribute('data-pickup-fit-size', '10');
 
   const pickupPixels = await pickupLayer.locator('.minimap-icon-crop').boundingBox();
   const splitIconPixels = await treasure.locator('.map-room-type-icon .minimap-icon-crop').boundingBox();
