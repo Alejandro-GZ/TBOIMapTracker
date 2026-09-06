@@ -10,9 +10,10 @@ const GROUP_LABELS = {
 
 interface RoomPaletteProps {
   onSelect?: () => void;
+  iconFitSize?: number;
 }
 
-export function RoomPalette({ onSelect }: RoomPaletteProps = {}) {
+export function RoomPalette({ onSelect, iconFitSize = 24 }: RoomPaletteProps = {}) {
   const placementType = useTrackerStore((state) => state.placementType);
   const setPlacementType = useTrackerStore((state) => state.setPlacementType);
 
@@ -39,7 +40,7 @@ export function RoomPalette({ onSelect }: RoomPaletteProps = {}) {
                 title={roomType.offGrid ? `${roomType.label} — off-grid internally in Isaac` : roomType.label}
               >
                 <span className="room-tool-icon">
-                  <RoomTypeSprite type={roomType.id} fallback={roomType.icon} fitSize={24} />
+                  <RoomTypeSprite type={roomType.id} fallback={roomType.icon} fitSize={iconFitSize} />
                 </span>
                 <span>{roomType.label}</span>
               </button>
