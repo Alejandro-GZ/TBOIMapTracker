@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:visual": "playwright test tests/visual.spec.ts tests/map-tools.spec.ts"
+    "test:visual": "playwright test tests/visual.spec.ts tests/map-tools.spec.ts tests/mobile.spec.ts"
   },
   "dependencies": {
     "react": "^19.1.1",
