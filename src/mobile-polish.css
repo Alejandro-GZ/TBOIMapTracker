@@ -1,0 +1,242 @@
+/* Follow-up mobile polish -------------------------------------------------
+ * Give pixel sprites breathing room and protect all interactive chrome from
+ * horizontal safe areas. Landscape phones use a right-side tool rail and
+ * side drawers instead of a compressed portrait layout.
+ */
+
+@media (max-width: 699px), (max-height: 500px) and (max-width: 950px) {
+  .mobile-app-shell .top-paper-frame .topbar {
+    padding-left: calc(10px + env(safe-area-inset-left)) !important;
+    padding-right: calc(8px + env(safe-area-inset-right)) !important;
+  }
+
+  .mobile-bottom-bar {
+    padding-left: calc(6px + env(safe-area-inset-left));
+    padding-right: calc(6px + env(safe-area-inset-right));
+  }
+
+  .mobile-toolbar-icon {
+    overflow: visible;
+  }
+
+  .mobile-sheet {
+    padding-left: calc(8px + env(safe-area-inset-left));
+    padding-right: calc(8px + env(safe-area-inset-right));
+  }
+
+  /* The desktop palette uses a 24 px target box. On touch that leaves some
+   * sprites flush against the edge and visually cropped. The mobile palette
+   * now renders into a 32 px target inside a 38 px slot, retaining integer
+   * pixel scaling while guaranteeing horizontal breathing room. */
+  .mobile-sheet .room-tool {
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+    min-height: 62px !important;
+    padding: 5px 5px !important;
+    overflow: visible;
+  }
+
+  .mobile-sheet .room-tool-icon {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    overflow: visible !important;
+  }
+
+  .mobile-sheet .room-tool-icon > .isaac-room-type-frame {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    overflow: visible;
+  }
+
+  .mobile-sheet .room-tool-icon .minimap-icon-sprite {
+    overflow: visible !important;
+  }
+}
+
+/* Landscape is intentionally a different composition, not a shorter version
+ * of portrait. The map keeps the centre, editing tools move to a right rail,
+ * and contextual sheets become side drawers. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 950px) {
+  .mobile-app-shell {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .mobile-app-shell .top-paper-frame .topbar {
+    grid-template-columns: auto minmax(120px, 1fr) 44px !important;
+    grid-template-rows: 48px !important;
+    min-height: calc(48px + env(safe-area-inset-top)) !important;
+    height: calc(48px + env(safe-area-inset-top)) !important;
+    flex-basis: calc(48px + env(safe-area-inset-top)) !important;
+    padding-top: env(safe-area-inset-top) !important;
+    padding-bottom: 0 !important;
+    gap: 6px !important;
+  }
+
+  .mobile-app-shell .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mobile-app-shell .topbar .brand-mark,
+  .mobile-app-shell .topbar .brand-mark img {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+  }
+
+  .mobile-app-shell .topbar .brand strong {
+    max-width: 220px;
+    font-size: 16px !important;
+  }
+
+  .mobile-run-summary {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: stretch;
+    align-self: center;
+    width: 100%;
+    max-width: none;
+    height: 36px;
+    padding: 0 10px;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid #2b241d;
+    border-right: 1px solid #2b241d;
+    text-align: center;
+  }
+
+  .mobile-run-summary span,
+  .mobile-run-summary b {
+    flex: 0 1 auto;
+  }
+
+  .mobile-overflow-button {
+    grid-column: 3;
+    grid-row: 1;
+    width: 40px;
+    height: 40px;
+  }
+
+  .workspace.mobile-workspace {
+    height: auto;
+  }
+
+  .mobile-workspace .map-stage {
+    padding: 0 calc(62px + env(safe-area-inset-right)) 0 env(safe-area-inset-left);
+  }
+
+  .mobile-workspace .map-zoom-surface {
+    width: min(calc(100vw - 78px - env(safe-area-inset-left) - env(safe-area-inset-right)), 720px) !important;
+    min-width: min(300px, calc(100vw - 92px)) !important;
+    max-width: 720px !important;
+  }
+
+  .mobile-bottom-bar {
+    left: auto;
+    right: 0;
+    top: calc(48px + env(safe-area-inset-top));
+    bottom: 0;
+    width: calc(62px + env(safe-area-inset-right));
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    padding: 4px env(safe-area-inset-right) calc(4px + env(safe-area-inset-bottom)) 4px;
+    border-top: 0;
+    border-left: 1px solid #332920;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, .55);
+  }
+
+  .mobile-bottom-bar button {
+    min-width: 54px;
+    width: 54px;
+    min-height: 0;
+    height: 100%;
+    padding: 3px 2px;
+    grid-template-rows: 27px auto;
+    align-content: center;
+  }
+
+  .mobile-toolbar-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mobile-room-peek {
+    left: calc(12px + env(safe-area-inset-left));
+    right: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    transform: none;
+    width: min(42vw, 320px);
+  }
+
+  .mobile-sheet-backdrop {
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+  }
+
+  .mobile-sheet {
+    width: min(58vw, 520px);
+    height: 100dvh;
+    max-height: none;
+    padding: calc(5px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) 8px;
+    border-top: 0;
+    border-left: 1px solid #5b4b3f;
+    box-shadow: -12px 0 38px rgba(0, 0, 0, .76);
+  }
+
+  .mobile-sheet-compact {
+    width: min(46vw, 420px);
+    max-height: none;
+  }
+
+  .mobile-sheet-handle {
+    display: none;
+  }
+
+  .mobile-sheet-header {
+    flex-basis: 42px;
+    min-height: 42px;
+  }
+
+  .mobile-sheet-body {
+    overflow-x: hidden;
+  }
+
+  .mobile-sheet .room-palette-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .mobile-sheet .room-tool {
+    min-height: 58px !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    padding: 4px !important;
+  }
+
+  .mobile-sheet .room-tool-icon,
+  .mobile-sheet .room-tool-icon > .isaac-room-type-frame {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+  }
+
+  .mobile-sheet .content-picker-modal {
+    width: min(92%, 500px);
+    max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .mobile-run-form {
+    padding-top: 8px;
+    gap: 8px;
+  }
+
+  .mobile-run-form input {
+    min-height: 42px;
+  }
+}

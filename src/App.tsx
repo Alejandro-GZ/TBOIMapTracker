@@ -308,7 +308,7 @@ export default function App() {
 
             {mobileSheet === 'rooms' && (
               <MobileSheet title="Rooms" onClose={() => setMobileSheet(null)}>
-                <RoomPalette onSelect={() => setMobileSheet(null)} />
+                <RoomPalette onSelect={() => setMobileSheet(null)} iconFitSize={32} />
               </MobileSheet>
             )}
 
