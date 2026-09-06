@@ -13,6 +13,7 @@ import './inspector-v2.css';
 import './room-mark-overrides.css';
 import './header-icon-polish.css';
 import './map-tools.css';
+import './mobile.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

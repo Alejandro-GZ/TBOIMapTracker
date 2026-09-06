@@ -8,7 +8,11 @@ const GROUP_LABELS = {
   hidden: 'Hidden',
 };
 
-export function RoomPalette() {
+interface RoomPaletteProps {
+  onSelect?: () => void;
+}
+
+export function RoomPalette({ onSelect }: RoomPaletteProps = {}) {
   const placementType = useTrackerStore((state) => state.placementType);
   const setPlacementType = useTrackerStore((state) => state.setPlacementType);
 
@@ -28,7 +32,10 @@ export function RoomPalette() {
                 key={roomType.id}
                 data-testid={`room-tool-${roomType.id}`}
                 className={`room-tool tone-${roomType.tone} ${placementType === roomType.id ? 'active' : ''}`}
-                onClick={() => setPlacementType(roomType.id)}
+                onClick={() => {
+                  setPlacementType(roomType.id);
+                  onSelect?.();
+                }}
                 title={roomType.offGrid ? `${roomType.label} — off-grid internally in Isaac` : roomType.label}
               >
                 <span className="room-tool-icon">

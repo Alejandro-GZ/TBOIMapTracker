@@ -28,6 +28,10 @@ interface PickupGroup {
   quantity: number;
 }
 
+interface RoomInspectorProps {
+  onDelete?: () => void;
+}
+
 function groupRoomContents(pickups: Pickup[]): PickupGroup[] {
   const grouped = new Map<string, PickupGroup>();
   for (const pickup of pickups) {
@@ -42,7 +46,7 @@ function groupRoomContents(pickups: Pickup[]): PickupGroup[] {
   return [...grouped.values()];
 }
 
-export function RoomInspector() {
+export function RoomInspector({ onDelete }: RoomInspectorProps = {}) {
   const document = useTrackerStore((state) => state.document);
   const activeDimension = useTrackerStore((state) => state.activeDimension);
   const selectedRoomId = useTrackerStore((state) => state.selectedRoomId);
@@ -135,7 +139,10 @@ export function RoomInspector() {
           className="inspector-delete-button"
           aria-label="Delete room"
           title="Delete room"
-          onClick={() => deleteRoom(room.id)}
+          onClick={() => {
+            deleteRoom(room.id);
+            onDelete?.();
+          }}
         >
           <TrashIcon />
         </button>

@@ -15,7 +15,7 @@ Isaac runs often leave useful resources behind: hearts, bombs, keys, chests, car
 - Supports `1x1`, `IH`, `IV`, `1x2`, `IIV`, `2x1`, `IIH`, `2x2` and all four L variants.
 - Placement is rejected if a shape overlaps another room or leaves the grid.
 - Room types expose only shapes that are valid for that tracker type.
-- All **30 MiniMAPI room icons** in the local atlas are now exposed by tracker room types, including Dirty Bedroom, Chest Room, Mirror Room, Rails Room, Red/Silver Treasure Rooms and Teleporter Room.
+- All **30 MiniMAPI room icons** in the local atlas are exposed by tracker room types, including Dirty Bedroom, Chest Room, Mirror Room, Rails Room, Red/Silver Treasure Rooms and Teleporter Room.
 - Devil, Angel, Black Market and I AM ERROR can be represented visually even though they have special/off-grid engine semantics.
 - A new map starts with the Starting Room at `(6,6)` / grid index `84`.
 
@@ -28,16 +28,15 @@ References:
 
 ## Features
 
-- 13 × 13 room editor with coordinate axes outside the matrix.
-- Explicit map modes for **Move**, **Paint rooms** and **Erase rooms**.
-- Choosing a room type in the left palette automatically switches the map to **Paint** mode.
-- In Paint mode, click an empty cell for a `1x1`; drag a path for horizontal/vertical doubles, `2x2` and L footprints. Painting over an existing room is a no-op.
+- 13 × 13 room editor with explicit **Move**, **Paint rooms** and **Erase rooms** modes.
+- Choosing a room type automatically switches the map to **Paint** mode.
+- In Paint mode, click/tap an empty cell for a `1x1`; drag a path for horizontal/vertical doubles, `2x2` and L footprints. Painting over an existing room is a no-op.
 - In Move mode, select and drag existing rooms to reposition them.
-- In Erase mode, click any occupied cell to remove the whole room immediately; the inspector delete button also deletes without a confirmation dialog.
-- Mouse wheel zoom focused around the pointer, plus `− / reset / +` controls.
-- Compact icon toolbar directly below the zoom controls for Move/Paint/Erase, grid guides, import, export and new-map actions.
-- Hold the **middle mouse button** and drag to pan the map without interfering with room placement.
-- Browser-height workspace: the page itself never scrolls; dense side panels scroll internally.
+- In Erase mode, click/tap any occupied cell to remove the whole room immediately; the inspector delete button also deletes without a confirmation dialog.
+- Unified **Pointer Events** interaction engine for mouse, touch and stylus; room movement no longer depends on HTML Drag & Drop.
+- Desktop mouse-wheel zoom plus `− / reset / +` controls and middle-button panning.
+- Phone pinch-to-zoom/two-finger pan with editing gestures cancelled when a second finger appears.
+- Browser-height workspace with local autosave through `localStorage`.
 - Canonical **RoomShape** preview images from IsaacDocs for all 12 shapes.
 - Local 1:1 **MiniMAPI room icons** from the project atlas, scaled only by integer factors.
 - Blue/Red rooms reuse and recolour `R_NORMAL`; Black Market reuses and recolours `R_SHOP`.
@@ -46,11 +45,32 @@ References:
 - Visual shape picker for corridor and L variants.
 - Room type, visited state, notes and contents tracking.
 - Optional dashed edit guides without per-cell numeric labels.
-- Local autosave through `localStorage`.
 - Import/export of portable `.tboimap.json` files.
 - PF Tempesta Seven Condensed for HUD-like UI and Upheaval for title treatment.
-- CI with TypeScript, unit tests, production build and Playwright browser UI checks.
+- CI with TypeScript, unit tests, production build and Playwright desktop/mobile browser checks.
 - GitHub Pages deployment workflow.
+
+## Mobile UX
+
+Phones use a **map-first** layout instead of shrinking the desktop three-column interface:
+
+- The map takes almost the entire available screen.
+- A safe-area-aware bottom toolbar exposes **Move / Paint / Erase / Rooms** with large touch targets.
+- The room palette opens as a bottom sheet and closes automatically after choosing a room type.
+- Tapping a room in Move mode opens its inspector as a bottom sheet.
+- Run/floor/seed editing is available from the compact header.
+- Grid, Fit Map, import, export and new-map actions live in the overflow menu instead of consuming permanent map space.
+- Portrait phones and low-height landscape phones use dedicated responsive layouts.
+
+Touch contract:
+
+| Mode | One finger | Two fingers |
+| --- | --- | --- |
+| Move | drag empty map to pan; tap room to inspect; drag room to move | pinch zoom / pan |
+| Paint | tap/drag empty cells to create rooms; occupied rooms are a no-op | pinch zoom / pan |
+| Erase | tap room to delete; drag empty map to pan | pinch zoom / pan |
+
+When the second finger appears, any direct Paint/Move gesture is cancelled so zooming cannot accidentally edit the map.
 
 ## Rendering architecture
 
@@ -66,7 +86,7 @@ MapViewport
         └── Contents       local pickup/structure atlas sprites
 ```
 
-- **React DOM** owns controls, accessibility and pointer interactions.
+- **React DOM** owns controls, accessibility and Pointer Events.
 - **CSS Grid** gives interaction and room layers the same 13 × 13 coordinate system.
 - Every room is rendered once instead of duplicating art in every occupied cell.
 - Room silhouettes use the pinned IsaacDocs RoomShape images directly.
@@ -74,6 +94,7 @@ MapViewport
 - The atlas renderer uses integer scaling and `image-rendering: pixelated`; it never stretches width and height independently.
 - Multi-cell and L-room type icons use the centroid of the occupied cells.
 - Visible artificial door/neck connectors are not rendered.
+- Desktop and mobile share the same store, geometry rules, palette and inspector components; only their containers/navigation differ.
 
 See [`ASSETS.md`](./ASSETS.md) for runtime provenance and [`ICON_AUDIT.md`](./ICON_AUDIT.md) for the complete 88-icon semantic audit.
 
@@ -99,7 +120,7 @@ npx playwright install chromium
 npm run test:visual
 ```
 
-The Playwright suite uses the real UI to place rooms, drag large/L footprints, add exact pickups/structures, zoom and middle-button pan the map. It also captures representative screenshots as the `map-visual-check` CI artifact.
+The Playwright suite exercises the real desktop UI and an actual mobile/touch browser context. Mobile checks cover the map-first shell, touch targets, Rooms sheet, Paint/Move/Erase workflow, Inspector sheet, overflow actions and phone landscape overflow constraints.
 
 ## Data format
 
@@ -159,4 +180,5 @@ See [`ASSETS.md`](./ASSETS.md) for exact runtime provenance. `ICON_AUDIT.md` rec
 - Undo / redo and keyboard room-type shortcuts.
 - Optional secret-room candidate helpers, clearly marked as heuristics.
 - Shareable compressed map URLs.
+- Installable/offline PWA packaging with dedicated high-resolution app icons.
 - Item database integration for collectible names/icons without coupling the editor core to one provider.
