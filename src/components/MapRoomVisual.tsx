@@ -59,11 +59,12 @@ export function MapRoomVisual({ room, selected }: MapRoomVisualProps) {
   const pickupLayout = COLUMN_PICKUP_SHAPES.includes(room.shape) ? 'column' : 'row';
   const portraitPhone = usePortraitPhone();
 
-  /* Desktop/landscape retain the established 36/24 px targets. Portrait uses
-   * targets below 21 px so every 7–9 px MiniMAPI room frame is capped at an
-   * integer ×2 scale instead of growing wider/taller than a phone grid cell. */
+  /* Desktop/landscape retain the established 36/24 px targets. Portrait cells
+   * are only ~15–17 CSS px wide on a phone, so keep the atlas target below the
+   * ×2 threshold for 7–9 px room frames. High-DPR screens still render these
+   * crisply while leaving visible space around every side of the cell. */
   const roomIconFitSize = portraitPhone
-    ? (splitContent ? 18 : 20)
+    ? (splitContent ? 12 : 13)
     : (splitContent ? 24 : 36);
 
   const style = {
