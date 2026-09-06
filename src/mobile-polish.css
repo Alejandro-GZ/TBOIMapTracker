@@ -66,13 +66,8 @@
   .map-room-visual[data-map-sprite-profile='portrait-phone'] .room-pickup-layer {
     position: relative !important;
     bottom: auto !important;
-    width: 12px;
-    height: 12px;
-    min-width: 12px;
-    min-height: 12px;
-    max-width: 12px;
-    max-height: 12px;
-    flex: 0 0 12px;
+    max-width: 72%;
+    max-height: 100%;
     gap: 0;
     overflow: hidden !important;
   }
