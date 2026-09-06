@@ -1,6 +1,15 @@
 import { devices, expect, test, type Page } from '@playwright/test';
 
-test.use({ ...devices['iPhone 13'] });
+const iphone13 = devices['iPhone 13'];
+test.use({
+  browserName: 'chromium',
+  userAgent: iphone13.userAgent,
+  viewport: iphone13.viewport,
+  screen: iphone13.screen,
+  deviceScaleFactor: iphone13.deviceScaleFactor,
+  isMobile: iphone13.isMobile,
+  hasTouch: iphone13.hasTouch,
+});
 
 async function tapCell(page: Page, x: number, y: number) {
   const box = await page.getByTestId(`map-cell-${x}-${y}`).boundingBox();
