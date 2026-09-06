@@ -1,0 +1,553 @@
+/* Mobile experience -------------------------------------------------------
+ * Phones use a map-first shell. Desktop keeps the existing three-column UI.
+ * The same RoomPalette / RoomInspector components are mounted inside sheets.
+ */
+
+.mobile-run-summary,
+.mobile-overflow-button,
+.mobile-bottom-bar,
+.mobile-sheet-backdrop,
+.mobile-room-peek {
+  display: none;
+}
+
+.grid-cell.move-target {
+  outline: 1px solid rgba(222, 211, 193, .72);
+  outline-offset: -2px;
+  background: rgba(205, 194, 174, .08);
+}
+
+@media (max-width: 699px), (max-height: 500px) and (max-width: 950px) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+  }
+
+  .mobile-app-shell {
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-app-shell .top-paper-frame {
+    flex: 0 0 auto;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .mobile-app-shell .top-paper-frame .topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 48px !important;
+    grid-template-rows: 42px 24px !important;
+    flex: 0 0 70px !important;
+    min-height: 70px !important;
+    height: 70px !important;
+    padding: 2px 8px 4px 10px !important;
+    gap: 0 6px !important;
+    transform: none !important;
+    border-bottom-width: 1px;
+  }
+
+  .mobile-app-shell .brand {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0 !important;
+    gap: 7px !important;
+    transform: none !important;
+    align-items: center;
+  }
+
+  .mobile-app-shell .topbar .brand-mark,
+  .mobile-app-shell .topbar .brand-mark img {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .mobile-app-shell .topbar .brand strong {
+    max-width: calc(100vw - 112px);
+    overflow: hidden;
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 19px !important;
+    line-height: 1 !important;
+    letter-spacing: .035em !important;
+  }
+
+  .mobile-app-shell .topbar .brand span,
+  .mobile-app-shell .run-meta {
+    display: none !important;
+  }
+
+  .mobile-run-summary {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    align-self: center;
+    display: flex;
+    min-width: 0;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    height: 22px;
+    padding: 0 4px;
+    gap: 4px;
+    border: 0;
+    color: #847a70;
+    background: transparent;
+    font-size: 8px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobile-run-summary span,
+  .mobile-run-summary b {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-run-summary b {
+    color: #625a52;
+    font-weight: 400;
+  }
+
+  .mobile-overflow-button {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid transparent;
+    color: #b9b0a4;
+    background: transparent;
+    font-family: sans-serif;
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .mobile-overflow-button:active {
+    border-color: #51453b;
+    background: rgba(255, 255, 255, .035);
+  }
+
+  .workspace.mobile-workspace {
+    position: relative;
+    display: block !important;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .mobile-workspace .map-stage {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0 0 calc(66px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-workspace .map-stage-header {
+    display: none !important;
+  }
+
+  .mobile-workspace .map-viewport {
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    box-shadow: inset 0 0 70px 12px #000;
+    touch-action: none;
+  }
+
+  .mobile-workspace .map-zoom-surface {
+    width: min(96vw, 620px) !important;
+    min-width: min(320px, 94vw) !important;
+    max-width: 620px !important;
+  }
+
+  .mobile-workspace .matrix-coordinate {
+    display: none !important;
+  }
+
+  .mobile-workspace .grid-cell {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+  }
+
+  .mobile-bottom-bar {
+    position: fixed;
+    z-index: 45;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 3px 6px env(safe-area-inset-bottom);
+    border-top: 1px solid #332920;
+    background: rgba(9, 7, 5, .97);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, .58);
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-bottom-bar button {
+    min-width: 0;
+    min-height: 56px;
+    padding: 4px 2px 3px;
+    display: grid;
+    grid-template-rows: 30px auto;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 0;
+    color: #8d847a;
+    background: transparent;
+    font-size: 8px;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-bottom-bar button.active {
+    color: #e2d9cb;
+    border-color: #52463c;
+    background: rgba(189, 180, 166, .10);
+  }
+
+  .mobile-bottom-bar button:active {
+    background: rgba(189, 180, 166, .16);
+  }
+
+  .mobile-toolbar-icon {
+    display: block;
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    pointer-events: none;
+  }
+
+  .mobile-room-peek {
+    position: fixed;
+    z-index: 42;
+    left: 50%;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    width: min(88vw, 360px);
+    min-height: 42px;
+    padding: 5px 10px;
+    gap: 7px;
+    border: 1px solid #463a30;
+    border-radius: 0;
+    color: #bdb4a8;
+    background: rgba(12, 9, 7, .94);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .52);
+    text-align: left;
+  }
+
+  .mobile-room-peek span {
+    color: #665e56;
+    font-size: 7px;
+  }
+
+  .mobile-room-peek strong {
+    overflow: hidden;
+    font-family: 'Upheaval TT (BRK)', 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: capitalize;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-room-peek b {
+    font-size: 13px;
+  }
+
+  .mobile-sheet-backdrop {
+    position: fixed;
+    z-index: 80;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: stretch;
+    padding-top: env(safe-area-inset-top);
+    background: rgba(0, 0, 0, .52);
+    backdrop-filter: blur(2px);
+    touch-action: none;
+  }
+
+  .mobile-sheet {
+    width: 100%;
+    max-height: min(78dvh, 720px);
+    padding: 4px 8px calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #5b4b3f;
+    background:
+      radial-gradient(circle at 35% 0%, rgba(112, 77, 49, .10), transparent 34%),
+      linear-gradient(165deg, #1c1713, #0d0a08 75%);
+    box-shadow: 0 -12px 38px rgba(0, 0, 0, .76);
+    touch-action: pan-y;
+  }
+
+  .mobile-sheet-compact {
+    max-height: min(68dvh, 520px);
+  }
+
+  .mobile-sheet-handle {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 4px;
+    margin: 2px auto 5px;
+    background: #574b40;
+  }
+
+  .mobile-sheet-header {
+    flex: 0 0 43px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px 4px 5px;
+    border-bottom: 1px solid #30271f;
+  }
+
+  .mobile-sheet-header h2 {
+    margin: 0;
+    color: #d0c7ba;
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  .mobile-sheet-header button {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    color: #8f857a;
+    background: transparent;
+    font-family: sans-serif;
+    font-size: 27px;
+  }
+
+  .mobile-sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-sheet .panel {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 8px 2px 2px !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-sheet .palette-title {
+    display: none;
+  }
+
+  .mobile-sheet .palette-group {
+    margin: 0 0 12px;
+  }
+
+  .mobile-sheet .palette-group h3 {
+    margin: 4px 3px 6px;
+    color: #746a61;
+    font-size: 9px;
+  }
+
+  .mobile-sheet .room-palette-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+  }
+
+  .mobile-sheet .room-tool {
+    min-height: 58px !important;
+    padding: 4px 3px !important;
+    gap: 2px;
+  }
+
+  .mobile-sheet .room-tool-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .mobile-sheet .room-tool span:nth-child(2) {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 8px !important;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-sheet .room-inspector-toolbar {
+    min-height: 48px;
+    gap: 5px;
+  }
+
+  .mobile-sheet .room-inspector-toolbar button,
+  .mobile-sheet .content-add-button,
+  .mobile-sheet .content-token {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mobile-sheet .inspector-type-select {
+    min-height: 44px;
+    font-size: 10px;
+  }
+
+  .mobile-sheet .notes-field textarea {
+    min-height: 92px;
+    font-size: 16px;
+  }
+
+  .mobile-sheet .content-picker-modal {
+    width: min(94vw, 520px);
+    max-height: 72dvh;
+  }
+
+  .mobile-sheet .content-picker-option {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .mobile-run-form {
+    display: grid;
+    gap: 11px;
+    padding: 12px 4px 4px;
+  }
+
+  .mobile-run-form label {
+    display: grid;
+    gap: 5px;
+  }
+
+  .mobile-run-form label > span {
+    color: #766c62;
+    font-size: 9px;
+  }
+
+  .mobile-run-form input {
+    width: 100%;
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 1px solid #3d332a;
+    border-radius: 0;
+    color: #d6cdc0;
+    background: #080604;
+    box-sizing: border-box;
+    font-size: 16px;
+    outline: none;
+  }
+
+  .mobile-run-form input:focus {
+    border-color: #746659;
+  }
+
+  .mobile-menu-actions {
+    display: grid;
+    padding: 7px 0 2px;
+  }
+
+  .mobile-menu-actions button {
+    min-height: 50px;
+    padding: 0 13px;
+    border: 0;
+    border-bottom: 1px solid #2c241d;
+    color: #c2b8ab;
+    background: transparent;
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .mobile-menu-actions button:active {
+    background: rgba(189, 180, 166, .09);
+  }
+
+  .mobile-menu-actions .danger-action {
+    color: #bb8178;
+  }
+}
+
+@media (max-height: 500px) and (max-width: 950px) {
+  .mobile-app-shell .top-paper-frame .topbar {
+    grid-template-rows: 38px 18px !important;
+    min-height: 58px !important;
+    height: 58px !important;
+    flex-basis: 58px !important;
+  }
+
+  .mobile-app-shell .topbar .brand-mark,
+  .mobile-app-shell .topbar .brand-mark img {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+  }
+
+  .mobile-app-shell .topbar .brand strong {
+    font-size: 17px !important;
+  }
+
+  .mobile-run-summary {
+    height: 18px;
+  }
+
+  .mobile-workspace .map-stage {
+    padding-bottom: calc(58px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-bottom-bar {
+    height: calc(56px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-bottom-bar button {
+    min-height: 48px;
+    grid-template-rows: 25px auto;
+  }
+
+  .mobile-toolbar-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-room-peek {
+    bottom: calc(62px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-sheet {
+    max-height: 88dvh;
+  }
+
+  .mobile-sheet .room-palette-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
