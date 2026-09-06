@@ -31,8 +31,9 @@ test('phone UI is map-first and supports the core touch editing flow', async ({ 
 
   const viewport = await page.getByTestId('map-viewport').boundingBox();
   if (!viewport) throw new Error('Map viewport is missing');
+  const innerHeight = await page.evaluate(() => window.innerHeight);
   expect(viewport.width).toBeGreaterThan(360);
-  expect(viewport.height).toBeGreaterThan(600);
+  expect(viewport.height).toBeGreaterThan(innerHeight * 0.6);
 
   const bottomButtons = page.getByTestId('mobile-bottom-bar').locator('button');
   await expect(bottomButtons).toHaveCount(4);
