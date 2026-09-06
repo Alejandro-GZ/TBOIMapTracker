@@ -20,7 +20,7 @@ export function RoomPickupLayer({ pickups, layout, compact = false }: RoomPickup
   const first = pickups[0];
   const totalQuantity = pickups.reduce((sum, pickup) => sum + pickup.quantity, 0);
   const hiddenQuantity = Math.max(0, totalQuantity - 1);
-  const fitSize = compact ? 14 : 18;
+  const fitSize = compact ? 10 : 18;
 
   return (
     <span
